@@ -54,9 +54,9 @@ const FORMS: Record<string, string> = {
   other: "Other",
 };
 
-/** The form inside a match key ("salts|form|release|unit") → "Tablet", "Capsule, extended release". */
+/** The form inside a match key ("form|release|salts|unit") → "Tablet", "Capsule, extended release". */
 export function formLabel(matchKey: string): string | undefined {
-  const [, form, release] = matchKey.split("|");
+  const [form, release] = matchKey.split("|");
   const name = form ? FORMS[form] : undefined;
   if (!name) return undefined;
   return release === "extended" ? `${name}, extended release` : name;

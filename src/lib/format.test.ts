@@ -13,8 +13,8 @@ test("formats prices, packs, unit prices and savings for display", () => {
   expect(percent(9599)).toBe("95%"); // rounds down, never overstates a saving
   expect(sourceLabel("jan_aushadhi")).toBe("Jan Aushadhi");
   expect(sourceLabel("brand")).toBe("Brand");
-  expect(formLabel("paracetamol:650000000|tablet|standard|unit")).toBe("Tablet");
-  expect(formLabel("x:1|liquid|standard|ml")).toBe("Syrup or liquid");
-  expect(formLabel("x:1|capsule|extended|unit")).toBe("Capsule, extended release");
+  expect(formLabel("tablet|standard|paracetamol:650mg|unit")).toBe("Tablet");
+  expect(formLabel("liquid|standard|paracetamol:100mg/1ml|ml")).toBe("Syrup or liquid");
+  expect(formLabel("capsule|extended|x:1mg|unit")).toBe("Capsule, extended release");
   expect(formLabel("k1")).toBeUndefined();
 });

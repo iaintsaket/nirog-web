@@ -198,19 +198,28 @@ p { margin: 0; }
 .stat-best .stat-price { color: var(--accent-strong); }
 .stat-name { font-size: .85rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.ladder { display: grid; gap: 4px; }
-.rung { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(60px, 1fr) auto; gap: 4px 16px; align-items: center;
-  padding: 10px 12px; border-radius: 10px; }
-.rung-you { background: var(--warn-soft); }
-.rung-name { min-width: 0; }
-.rung-bar { height: 10px; }
-.bar { display: block; height: 10px; border-radius: 5px; background: var(--border); transform-origin: left;
+/* Each substitute is its own card: name and unit price on top, tags and pack below, a slim bar, small links. */
+.ladder { display: grid; gap: 10px; }
+.rung { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); }
+.rung-best { border-color: var(--accent); }
+.rung-you { border-color: #d9a441; background: var(--warn-soft); }
+.rung-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.rung-title { min-width: 0; overflow-wrap: anywhere; }
+.rung-price { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+.rung-best .rung-price { color: var(--accent-strong); }
+.rung-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rung-meta { margin-left: 2px; }
+.rung-bar { height: 4px; }
+.bar { display: block; height: 4px; border-radius: 2px; background: var(--border); transform-origin: left;
   animation: bar-grow .6s var(--ease) both; }
 .bar-good { background: var(--accent); }
 .bar-you { background: #b7791f; }
 @keyframes bar-grow { from { transform: scaleX(0); } }
-.rung-price { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; font-size: .9rem; text-align: right; }
-.rung-links { grid-column: 1 / -1; }
+.rung-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.link-chip { font-size: .8rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
+  color: var(--text); text-decoration: none; background: var(--bg); }
+.link-chip:hover { border-color: var(--accent); color: var(--accent-strong); }
 
 @media (max-width: 760px) {
   .is-split .search-left { flex-basis: 100%; }
@@ -225,8 +234,6 @@ p { margin: 0; }
   .sheet-bar { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0;
     background: var(--bg); padding: 10px 0; z-index: 1; }
   .sheet-grab { width: 44px; height: 5px; border-radius: 3px; background: var(--border); margin-left: calc(50% - 22px); }
-  .rung { grid-template-columns: minmax(0, 1fr) auto; }
-  .rung-bar { grid-column: 1 / -1; order: 3; }
 }
 @media (prefers-reduced-motion: reduce) {
   .search-shell *, .search-shell { transition-duration: 0s !important; animation-duration: 0s !important; }

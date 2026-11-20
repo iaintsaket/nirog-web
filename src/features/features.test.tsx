@@ -112,7 +112,7 @@ test("search: a brand we have no price for leads to medicines with its salt; the
 });
 
 test("compare: shows the saving, badges and buy links; signed-in users can save", async () => {
-  const key = "atorvastatin:10000000|tablet|standard|unit";
+  const key = "tablet|standard|atorvastatin:10mg|unit";
   const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison({ key }), "POST /v1/saved": { id: "s1" } });
   nav.params = new URLSearchParams(`key=${encodeURIComponent(key)}&searched=b1`);
   withAuth(<ComparePage />);

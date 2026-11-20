@@ -102,16 +102,18 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
           const you = i === c.searched_index;
           const tone = you ? " bar-you" : i === 0 || offer.source === "jan_aushadhi" ? " bar-good" : "";
           return (
-            <li key={offer.id} className={`rung${you ? " rung-you" : ""}`}>
-              <div className="rung-name">
-                <div className="offer-name">
-                  <strong>{offer.name}</strong> <SourceBadge source={offer.source} />
-                  {i === 0 && <span className="badge badge-cheapest">Cheapest</span>}
-                  {you && <span className="badge badge-searched">You searched</span>}
-                </div>
-                <div className="muted small">
+            <li key={offer.id} className={`rung${you ? " rung-you" : i === 0 ? " rung-best" : ""}`}>
+              <div className="rung-top">
+                <strong className="rung-title">{offer.name}</strong>
+                <span className="rung-price">{unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}</span>
+              </div>
+              <div className="rung-tags">
+                <SourceBadge source={offer.source} />
+                {i === 0 && <span className="badge badge-cheapest">Cheapest</span>}
+                {you && <span className="badge badge-searched">You searched</span>}
+                <span className="muted small rung-meta">
                   {offer.manufacturer} · {rupees(offer.price_paise)} for {packLabel(offer.pack_count, offer.pack_unit)}
-                </div>
+                </span>
               </div>
               <div className="rung-bar" aria-hidden="true">
                 <span
@@ -119,11 +121,10 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
                   style={{ width: `${Math.max(2, (offer.unit_price_millipaise / maxUnit) * 100)}%` }}
                 />
               </div>
-              <div className="rung-price">{unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}</div>
               {links.length > 0 && (
-                <div className="links rung-links">
+                <div className="rung-links">
                   {links.map((l) => (
-                    <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="button button-quiet">
+                    <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="link-chip">
                       {l.label} ↗
                     </a>
                   ))}
