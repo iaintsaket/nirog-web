@@ -1,18 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import type { SearchGroup } from "@/api/client";
+import { CompareView } from "@/features/compare/CompareView";
+import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
-import { OfferSummary } from "./OfferSummary";
 
+/** The page splits into list + prices once the query has this many characters. */
 const MIN = 2;
 const MAX = 100;
-const SHOWN_PER_GROUP = 3;
+/** Wait this long after the last keystroke (or arrow key) before calling the API. */
+const DEBOUNCE_MS = 150;
 
 type State =
-  | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "done"; groups: SearchGroup[] }
   | { kind: "error"; message: string };
@@ -23,70 +24,140 @@ export function compareHref(key: string, searched?: string): string {
   return `/compare?${p.toString()}`;
 }
 
+function useDebounced<T>(value: T, ms: number): T {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
+
 export function SearchPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const q = (params.get("q") ?? "").trim();
-  const [text, setText] = useState(q);
-  const [state, setState] = useState<State>({ kind: "idle" });
+  const [text, setText] = useState(params.get("q") ?? "");
+  const [state, setState] = useState<State>({ kind: "loading" });
+  const [sel, setSel] = useState(0);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const typed = text.trim();
+  const split = typed.length >= MIN;
+  const q = useDebounced(typed, DEBOUNCE_MS);
+  const groups = state.kind === "done" ? state.groups : [];
+  const picked = split ? groups[sel] : undefined;
+  const pickedKey = useDebounced(picked ? `${picked.key}\n${picked.matched[0]?.id ?? ""}` : "", DEBOUNCE_MS);
 
   useEffect(() => {
+    router.replace(q.length >= MIN ? `/?q=${encodeURIComponent(q)}` : "/", { scroll: false });
     if (q.length < MIN) return;
     let live = true;
+    // Keep the last results on screen while the next ones load, so the list doesn't flicker.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading state for a new query
-    setState({ kind: "loading" });
+    setState((s) => (s.kind === "done" ? s : { kind: "loading" }));
     searchMedicines(q).then((r) => {
       if (!live) return;
+      setSel(0);
       setState(r.ok ? { kind: "done", groups: r.data } : { kind: "error", message: r.message });
     });
     return () => {
       live = false;
     };
-  }, [q]);
+  }, [q, router]);
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    const next = text.trim();
-    if (next.length >= MIN) router.push(`/?q=${encodeURIComponent(next)}`);
+  function clear() {
+    setText("");
+    setSheetOpen(false);
+    setState({ kind: "loading" });
   }
 
+  function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      if (sheetOpen) setSheetOpen(false);
+      else clear();
+      return;
+    }
+    if (!split || groups.length === 0) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      setSel((i) => (i + step + groups.length) % groups.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      setSheetOpen(true);
+    }
+  }
+
+  const [detailKey, detailSearched] = pickedKey.split("\n");
+  const expanded = split && groups.length > 0;
+
   return (
-    <div className="stack-lg">
-      <section className="hero stack">
-        <h1>Pay less for the same medicine</h1>
-        <p className="lede">
-          Search a medicine you buy. Nirog finds exact substitutes, with the same salts, strength and
-          form, from Jan Aushadhi and other brands, and shows what you could save.
-        </p>
-        <form role="search" className="search-form" onSubmit={onSubmit}>
+    <div className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}`}>
+      <div className="search-left">
+        <section className="search-hero">
+          <h1>Pay less for the same medicine</h1>
+          <p className="lede">
+            Same salts, strength and form, from Jan Aushadhi and other brands, with what you could save.
+          </p>
+        </section>
+        <form role="search" className="search-form" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="q" className="visually-hidden">
             Medicine name or salt
           </label>
           <input
             id="q"
             name="q"
-            type="search"
+            type="text"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={expanded}
+            aria-controls="search-results"
+            aria-activedescendant={expanded ? `result-${sel}` : undefined}
             placeholder="e.g. Dolo 650, Atorvastatin 10, Pan 40"
-            minLength={MIN}
             maxLength={MAX}
             autoComplete="off"
+            spellCheck={false}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setSheetOpen(false);
+            }}
+            onKeyDown={onKeyDown}
           />
-          <button type="submit" className="button button-primary" disabled={text.trim().length < MIN}>
-            Search
-          </button>
+          {text && (
+            <button type="button" className="search-clear" aria-label="Clear search" onClick={clear}>
+              ✕
+            </button>
+          )}
         </form>
-      </section>
+        {split && <ResultsList q={typed} state={state} sel={sel} onPick={(i) => { setSel(i); setSheetOpen(true); }} />}
+      </div>
 
-      {q.length >= MIN && <Results q={q} state={state} />}
+      <section className="search-right" aria-label="Prices">
+        <div className="sheet-bar">
+          <span className="sheet-grab" aria-hidden="true" />
+          <button type="button" className="button button-quiet" onClick={() => setSheetOpen(false)}>
+            Close
+          </button>
+        </div>
+        {split && detailKey && (
+          <CompareView key={pickedKey} matchKey={detailKey} searched={detailSearched || undefined} headingLevel="h2" />
+        )}
+      </section>
     </div>
   );
 }
 
-function Results({ q, state }: { q: string; state: State }) {
-  if (state.kind === "loading" || state.kind === "idle") {
-    return <p aria-busy="true">Searching…</p>;
+type ListProps = { q: string; state: State; sel: number; onPick: (i: number) => void };
+
+function ResultsList({ q, state, sel, onPick }: ListProps) {
+  if (state.kind === "loading") {
+    return (
+      <p className="results-note" aria-busy="true">
+        Searching…
+      </p>
+    );
   }
   if (state.kind === "error") {
     return (
@@ -104,34 +175,36 @@ function Results({ q, state }: { q: string; state: State }) {
     );
   }
   return (
-    <section aria-label="Search results" className="stack">
-      <h2 className="h3">
-        {state.groups.length} medicine{state.groups.length === 1 ? "" : "s"} matching “{q}”
-      </h2>
-      <ul className="cards">
-        {state.groups.map((g) => (
-          <li key={g.key} className="card stack-sm">
-            <div className="salts">{g.salts_label}</div>
-            <ul className="plain stack-sm">
-              {g.matched.slice(0, SHOWN_PER_GROUP).map((o) => (
-                <li key={o.id}>
-                  <Link className="offer-link" href={compareHref(g.key, o.id)}>
-                    <OfferSummary offer={o} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            {g.matched.length > SHOWN_PER_GROUP && (
-              <div className="muted small">
-                and {g.matched.length - SHOWN_PER_GROUP} more matching “{q}”
-              </div>
-            )}
-            <Link className="button button-primary" href={compareHref(g.key, g.matched[0]?.id)}>
-              Compare cheaper options
-            </Link>
-          </li>
-        ))}
+    <>
+      <p className="results-note" aria-live="polite">
+        {state.groups.length} medicine{state.groups.length === 1 ? "" : "s"} match “{q}”
+      </p>
+      <ul id="search-results" role="listbox" aria-label="Matching medicines" className="results plain">
+        {state.groups.map((g, i) => {
+          const first = g.matched[0];
+          const more = g.matched.length - 1;
+          return (
+            <li
+              key={g.key}
+              id={`result-${i}`}
+              role="option"
+              aria-selected={i === sel}
+              className="result"
+              style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}
+              onClick={() => onPick(i)}
+            >
+              <span className="result-main">
+                <strong>{first?.name ?? g.salts_label}</strong>
+                {more > 0 && <span className="muted small"> +{more} more</span>}
+                <span className="result-salts">{g.salts_label}</span>
+              </span>
+              {first && (
+                <span className="result-price">{shortUnitPrice(first.unit_price_millipaise, first.pack_unit)}</span>
+              )}
+            </li>
+          );
+        })}
       </ul>
-    </section>
+    </>
   );
 }

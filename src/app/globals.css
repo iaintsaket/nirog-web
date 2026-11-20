@@ -93,8 +93,7 @@ p { margin: 0; }
 .site-footer { border-top: 1px solid var(--border); padding: 20px 0; }
 .footer-row { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 
-.hero .lede { font-size: 1.075rem; color: var(--muted); max-width: 640px; }
-.search-form { display: flex; gap: 8px; margin-top: 20px; }
+.search-form { display: flex; gap: 8px; }
 .search-form input, .save-form input {
   flex: 1; min-width: 0; font: inherit; padding: 12px 14px; border-radius: 10px;
   border: 1px solid var(--border); background: var(--surface); color: var(--text);
@@ -121,8 +120,6 @@ p { margin: 0; }
 }
 .card-searched { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .salts { font-weight: 600; color: var(--accent-strong); }
-.offer-link { display: block; color: inherit; text-decoration: none; border-radius: 8px; padding: 6px 8px; margin: 0 -8px; }
-.offer-link:hover { background: var(--accent-soft); }
 .offer-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 
 .badge {
@@ -150,3 +147,80 @@ p { margin: 0; }
 .danger-zone { border-top: 1px solid var(--border); padding-top: 24px; }
 .prose h2 { margin-top: 24px; }
 .disclaimer { border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* Split search: one centred box that slides left once two letters are typed;
+   prices slide in on the right. On phones the prices open as a bottom sheet. */
+.container.main:has(.search-shell) { max-width: 1240px; }
+.search-shell { --ease: cubic-bezier(.2, .8, .2, 1); display: flex; align-items: flex-start; }
+.search-left { flex: 0 0 100%; min-width: 0; transition: flex-basis .55s var(--ease); }
+.search-left > * { max-width: 640px; margin-left: auto; margin-right: auto; transition: max-width .55s var(--ease); }
+.search-hero { text-align: center; padding-top: 8vh; margin-bottom: 24px; max-height: 260px; overflow: hidden;
+  transition: max-height .45s var(--ease), opacity .3s, padding .45s, margin .45s; }
+.search-hero .lede { color: var(--muted); margin-top: 8px; font-size: 1.075rem; }
+.search-form { position: relative; }
+.search-form input { padding-right: 44px; border: 2px solid var(--accent); }
+.search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: none;
+  color: var(--muted); font-size: 1rem; padding: 6px 8px; cursor: pointer; border-radius: 6px; }
+.results-note { font-size: .875rem; color: var(--muted); margin: 14px 4px 6px; }
+.results { display: grid; gap: 2px; padding-bottom: 24px; }
+.result { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 10px;
+  cursor: pointer; animation: result-in .35s var(--ease) both; }
+.result:hover { background: var(--surface); }
+.result[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.result-main { min-width: 0; }
+.result-salts { display: block; font-size: .85rem; color: var(--muted); }
+.result-price { font-size: .85rem; white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; }
+@keyframes result-in { from { opacity: 0; transform: translateY(6px); } }
+.search-right { flex: 1 1 0; min-width: 0; opacity: 0; transform: translateX(48px); pointer-events: none; overflow: hidden;
+  visibility: hidden; transition: opacity .45s .2s, transform .55s .15s var(--ease), visibility 0s .55s; }
+.sheet-bar { display: none; }
+
+.is-split .search-left { flex-basis: 380px; }
+.is-split .search-left > * { max-width: 100%; }
+.is-split .search-hero { max-height: 0; opacity: 0; padding-top: 0; margin-bottom: 0; }
+.is-split .search-form input { border-width: 1px; }
+.is-split .search-right { opacity: 1; transform: none; pointer-events: auto; visibility: visible; overflow: visible;
+  transition: opacity .45s .2s, transform .55s .15s var(--ease), visibility 0s;
+  position: sticky; top: 16px; margin-left: 28px; padding-left: 28px; border-left: 1px solid var(--border); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0 0; }
+.stat { border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; background: var(--surface); min-width: 0; }
+.stat dt { font-size: .8rem; color: var(--muted); }
+.stat dd { margin: 0; }
+.stat-price { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat-best .stat-price { color: var(--accent-strong); }
+.stat-name { font-size: .85rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.ladder { display: grid; gap: 4px; }
+.rung { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(60px, 1fr) auto; gap: 4px 16px; align-items: center;
+  padding: 10px 12px; border-radius: 10px; }
+.rung-you { background: var(--warn-soft); }
+.rung-name { min-width: 0; }
+.rung-bar { height: 10px; }
+.bar { display: block; height: 10px; border-radius: 5px; background: var(--border); transform-origin: left;
+  animation: bar-grow .6s var(--ease) both; }
+.bar-good { background: var(--accent); }
+.bar-you { background: #b7791f; }
+@keyframes bar-grow { from { transform: scaleX(0); } }
+.rung-price { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; font-size: .9rem; text-align: right; }
+.rung-links { grid-column: 1 / -1; }
+
+@media (max-width: 760px) {
+  .is-split .search-left { flex-basis: 100%; }
+  .search-hero { padding-top: 4vh; }
+  .search-right, .is-split .search-right {
+    position: fixed; inset: auto 0 0 0; height: 82vh; margin: 0; padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    border: 0; border-radius: 18px 18px 0 0; background: var(--bg); box-shadow: 0 -12px 40px rgb(0 0 0 / 25%);
+    overflow-y: auto; opacity: 1; z-index: 20; transform: translateY(100%); pointer-events: none; visibility: hidden;
+    transition: transform .45s var(--ease), visibility 0s .45s;
+  }
+  .sheet-open .search-right { transform: none; pointer-events: auto; visibility: visible; transition: transform .45s var(--ease); }
+  .sheet-bar { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0;
+    background: var(--bg); padding: 10px 0; z-index: 1; }
+  .sheet-grab { width: 44px; height: 5px; border-radius: 3px; background: var(--border); margin-left: calc(50% - 22px); }
+  .rung { grid-template-columns: minmax(0, 1fr) auto; }
+  .rung-bar { grid-column: 1 / -1; order: 3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-shell *, .search-shell { transition-duration: 0s !important; animation-duration: 0s !important; }
+}

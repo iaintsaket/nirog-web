@@ -18,10 +18,10 @@ export function mockApi(routes: Record<string, Handler | object | number>) {
   return calls;
 }
 
-export const nav = { params: new URLSearchParams(), push: vi.fn() };
+export const nav = { params: new URLSearchParams(), push: vi.fn(), replace: vi.fn() };
 vi.mock("next/navigation", () => ({
   useSearchParams: () => nav.params,
-  useRouter: () => ({ push: nav.push }),
+  useRouter: () => nav, // stable, like the real router
 }));
 
 export function offer(over: Partial<Offer> = {}): Offer {

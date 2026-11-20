@@ -29,6 +29,11 @@ export function unitPriceLabel(millipaise: number, unit: Offer["pack_unit"]): st
   return `${rupees(millipaise / 1000)} per ${UNIT_NAMES[unit][0]}`;
 }
 
+/** Compact unit price for tight lists: "₹0.91 each", "₹0.50/ml". */
+export function shortUnitPrice(millipaise: number, unit: Offer["pack_unit"]): string {
+  return `${rupees(millipaise / 1000)}${unit === "unit" ? " each" : `/${unit}`}`;
+}
+
 /** 4525 basis points → "45%" (rounded down, never overstates). */
 export function percent(bps: number): string {
   return `${Math.floor(bps / 100)}%`;

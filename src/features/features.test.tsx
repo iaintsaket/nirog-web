@@ -16,45 +16,62 @@ const signedOut = { "GET /v1/me": () => Response.json({ error: "unauthorized", m
 beforeEach(() => {
   nav.params = new URLSearchParams();
   nav.push.mockReset();
+  nav.replace.mockReset();
 });
 
-test("search: submits the query, then lists matching groups with compare links", async () => {
-  mockApi({
+const compareCalls = (calls: Request[]) =>
+  calls.filter((c) => c.url.includes("/v1/compare")).map((c) => new URL(c.url).searchParams.toString());
+
+test("search: splits after two letters; arrow keys pick a medicine and its prices load beside the list", async () => {
+  const calls = mockApi({
+    ...signedOut,
     "GET /v1/search": {
       groups: [
-        {
-          key: "k1",
-          salts_label: "Atorvastatin 10mg",
-          matched: ["a", "b", "c", "d"].map((id) => offer({ id, name: `Atorva ${id}` })),
-        },
+        { key: "k1", salts_label: "Atorvastatin 10mg", matched: [offer({ id: "a", name: "Atorva Tablet" }), offer({ id: "b" })] },
+        { key: "k2", salts_label: "Atorvastatin 20mg", matched: [offer({ id: "c", name: "Atorva 20 Tablet" })] },
       ],
     },
+    "GET /v1/compare": comparison(),
   });
-  const { rerender } = render(<SearchPage />);
-  await userEvent.type(screen.getByRole("searchbox"), "  atorva ");
-  await userEvent.click(screen.getByRole("button", { name: "Search" }));
-  expect(nav.push).toHaveBeenCalledWith("/?q=atorva");
+  withAuth(<SearchPage />);
+  const box = screen.getByRole("combobox", { name: /medicine/i });
 
-  nav.params = new URLSearchParams("q=atorva");
-  rerender(<SearchPage />);
-  const results = await screen.findByRole("region", { name: "Search results" });
-  expect(within(results).getAllByRole("link", { name: /Atorva/ })).toHaveLength(3);
-  expect(within(results).getByText(/and 1 more/)).toBeInTheDocument();
-  expect(within(results).getByRole("link", { name: "Compare cheaper options" })).toHaveAttribute(
-    "href",
-    "/compare?key=k1&searched=a",
-  );
+  await userEvent.type(box, "a");
+  expect(box).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+
+  await userEvent.type(box, "t");
+  const options = await within(await screen.findByRole("listbox")).findAllByRole("option");
+  expect(options.map((o) => o.textContent)).toEqual([
+    expect.stringContaining("Atorva Tablet"),
+    expect.stringContaining("Atorva 20 Tablet"),
+  ]);
+  expect(options[0]).toHaveAttribute("aria-selected", "true");
+  expect(box).toHaveAttribute("aria-activedescendant", options[0].id);
+  expect(nav.replace).toHaveBeenLastCalledWith("/?q=at", { scroll: false });
+  const prices = screen.getByRole("region", { name: "Prices" });
+  expect(await within(prices).findByRole("status")).toHaveTextContent("Save up to ₹190.92 per pack");
+  await waitFor(() => expect(compareCalls(calls)).toEqual(["key=k1&searched=a"]));
+
+  await userEvent.keyboard("{ArrowDown}");
+  expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+  await waitFor(() => expect(compareCalls(calls)).toContain("key=k2&searched=c"));
+
+  await userEvent.keyboard("{Escape}");
+  expect(box).toHaveValue("");
+  expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
 });
 
-test("search: shows empty and error states", async () => {
-  mockApi({ "GET /v1/search": { groups: [] } });
+test("search: starts from the URL query and shows empty and error states", async () => {
+  mockApi({ ...signedOut, "GET /v1/search": { groups: [] } });
   nav.params = new URLSearchParams("q=zzzz");
-  const { unmount } = render(<SearchPage />);
+  const { unmount } = withAuth(<SearchPage />);
+  expect(screen.getByRole("combobox", { name: /medicine/i })).toHaveValue("zzzz");
   expect(await screen.findByText(/No medicines match/)).toBeInTheDocument();
   unmount();
 
-  mockApi({ "GET /v1/search": () => Response.json({ error: "x", message: "Too many requests" }, { status: 429 }) });
-  render(<SearchPage />);
+  mockApi({ ...signedOut, "GET /v1/search": () => Response.json({ error: "x", message: "Too many requests" }, { status: 429 }) });
+  withAuth(<SearchPage />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Too many requests");
 });
 
@@ -66,8 +83,9 @@ test("compare: shows the saving, badges and buy links; signed-in users can save"
   expect(await screen.findByRole("status")).toHaveTextContent(
     "Save up to ₹190.92 per pack (95%) compared with Lipitor 10 Tablet by choosing Atorvastatin Tablets IP 10mg",
   );
-  expect(screen.getByText("Cheapest")).toBeInTheDocument();
-  expect(screen.getByText("You searched")).toBeInTheDocument();
+  const list = screen.getByRole("list", { name: "Substitutes, cheapest first" });
+  expect(within(list).getByText("Cheapest")).toBeInTheDocument();
+  expect(within(list).getByText("You searched")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer");
 
   await userEvent.click(await screen.findByRole("button", { name: "Save" }));
