@@ -4,6 +4,7 @@ import type { components, paths } from "./schema";
 export type Schemas = components["schemas"];
 export type Offer = Schemas["OfferDto"];
 export type SearchGroup = Schemas["SearchGroupDto"];
+export type BrandAlias = Schemas["BrandAliasDto"];
 export type Comparison = Schemas["ComparisonResponse"];
 export type BuyLink = Schemas["BuyLinkDto"];
 export type User = Schemas["UserDto"];

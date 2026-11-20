@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type KeyboardEvent } from "react";
-import type { SearchGroup } from "@/api/client";
+import type { BrandAlias, SearchGroup } from "@/api/client";
 import { CompareView } from "@/features/compare/CompareView";
 import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
@@ -16,7 +16,7 @@ const DEBOUNCE_MS = 150;
 
 type State =
   | { kind: "loading" }
-  | { kind: "done"; groups: SearchGroup[]; didYouMean: string[] }
+  | { kind: "done"; groups: SearchGroup[]; didYouMean: string[]; sameSaltAs: BrandAlias | null }
   | { kind: "error"; message: string };
 
 export function compareHref(key: string, searched?: string): string {
@@ -220,11 +220,16 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
       </div>
     );
   }
+  const alias = state.sameSaltAs;
   return (
     <>
-      <p className="results-note" aria-live="polite">
-        {state.groups.length} medicine{state.groups.length === 1 ? "" : "s"} match “{q}”
-      </p>
+      {alias ? (
+        <SameSaltNote alias={alias} exact={state.groups.some((g) => g.key === alias.key)} />
+      ) : (
+        <p className="results-note" aria-live="polite">
+          {state.groups.length} medicine{state.groups.length === 1 ? "" : "s"} match “{q}”
+        </p>
+      )}
       <ul id="search-results" role="listbox" aria-label="Matching medicines" className="results plain">
         {state.groups.map((g, i) => {
           const first = g.matched[0];
@@ -243,6 +248,7 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
                 <strong>{first?.name ?? g.salts_label}</strong>
                 {more > 0 && <span className="muted small"> +{more} more</span>}
                 <span className="result-salts">{g.salts_label}</span>
+                {alias?.key === g.key && <span className="badge badge-exact">Same strength</span>}
               </span>
               {first && (
                 <span className="result-price">{shortUnitPrice(first.unit_price_millipaise, first.pack_unit)}</span>
@@ -252,5 +258,20 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
         })}
       </ul>
     </>
+  );
+}
+
+function SameSaltNote({ alias, exact }: { alias: BrandAlias; exact: boolean }) {
+  return (
+    <div className="notice stack-sm same-salt" aria-live="polite">
+      <p>
+        We don&apos;t have {alias.brand}&apos;s price. These medicines have the same salt ({alias.salts_label}).
+      </p>
+      {!exact && (
+        <p className="small muted">
+          None of these is {alias.salts_label}; they have a different strength. Ask your pharmacist before switching.
+        </p>
+      )}
+    </div>
   );
 }

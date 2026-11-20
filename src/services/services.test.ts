@@ -15,7 +15,7 @@ test("sends the documented requests and unwraps successful responses", async () 
     "POST /v1/saved": { id: "s1" },
     "DELETE /v1/saved/s1": 204,
   });
-  expect(await searchMedicines("dolo")).toEqual({ ok: true, data: { groups: [], didYouMean: ["Dolo 650"] } });
+  expect(await searchMedicines("dolo")).toEqual({ ok: true, data: { groups: [], didYouMean: ["Dolo 650"], sameSaltAs: null } });
   expect((await compareMatch("k1", "b1")).ok).toBe(true);
   expect(await currentUser()).toEqual({ ok: true, data: user });
   for (const r of await Promise.all([signOut(), deleteAccount(), listSaved(), saveMatch("k1", "Mine", "b1"), removeSaved("s1")])) {
