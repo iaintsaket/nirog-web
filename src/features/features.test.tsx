@@ -26,6 +26,7 @@ test("search: splits after two letters; arrow keys pick a medicine and its price
   const calls = mockApi({
     ...signedOut,
     "GET /v1/search": {
+      did_you_mean: [],
       groups: [
         { key: "k1", salts_label: "Atorvastatin 10mg", matched: [offer({ id: "a", name: "Atorva Tablet" }), offer({ id: "b" })] },
         { key: "k2", salts_label: "Atorvastatin 20mg", matched: [offer({ id: "c", name: "Atorva 20 Tablet" })] },
@@ -63,11 +64,14 @@ test("search: splits after two letters; arrow keys pick a medicine and its price
 });
 
 test("search: starts from the URL query and shows empty and error states", async () => {
-  mockApi({ ...signedOut, "GET /v1/search": { groups: [] } });
-  nav.params = new URLSearchParams("q=zzzz");
+  mockApi({ ...signedOut, "GET /v1/search": { groups: [], did_you_mean: ["Dolo 650 Tablet"] } });
+  nav.params = new URLSearchParams("q=dollo");
   const { unmount } = withAuth(<SearchPage />);
-  expect(screen.getByRole("combobox", { name: /medicine/i })).toHaveValue("zzzz");
-  expect(await screen.findByText(/No medicines match/)).toBeInTheDocument();
+  const box = screen.getByRole("combobox", { name: /medicine/i });
+  expect(box).toHaveValue("dollo");
+  expect(await screen.findByText(/We don't have “dollo” yet/)).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Dolo 650 Tablet" }));
+  expect(box).toHaveValue("Dolo 650 Tablet");
   unmount();
 
   mockApi({ ...signedOut, "GET /v1/search": () => Response.json({ error: "x", message: "Too many requests" }, { status: 429 }) });

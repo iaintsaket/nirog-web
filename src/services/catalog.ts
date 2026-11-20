@@ -1,9 +1,11 @@
 import { api, type Comparison, type SearchGroup } from "@/api/client";
 import { call, type Result } from "./result";
 
-export function searchMedicines(q: string): Promise<Result<SearchGroup[]>> {
+export type SearchResult = { groups: SearchGroup[]; didYouMean: string[] };
+
+export function searchMedicines(q: string): Promise<Result<SearchResult>> {
   return call(() => api.GET("/v1/search", { params: { query: { q } } })).then((r) =>
-    r.ok ? { ok: true, data: r.data.groups } : r,
+    r.ok ? { ok: true, data: { groups: r.data.groups, didYouMean: r.data.did_you_mean } } : r,
   );
 }
 
