@@ -141,9 +141,9 @@ export function SearchPage() {
         </form>
         {!split && (
           <ul className="search-trust plain" aria-label="About the prices">
-            <li>Government Jan Aushadhi price list</li>
-            <li>2.4 lakh medicines compared</li>
-            <li>No ads, no pharmacy tie-ups</li>
+            <li>Government Jan Aushadhi prices</li>
+            <li>3.5 lakh medicines</li>
+            <li>No ads or tie-ups</li>
           </ul>
         )}
         {split && (

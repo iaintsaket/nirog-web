@@ -97,7 +97,7 @@ p { margin: 0; }
 @media (max-width: 480px) { .auth-menu .muted { display: none; } }
 
 .site-footer { border-top: 1px solid var(--border); padding: 20px 0; }
-.footer-row { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.footer-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; text-align: center; }
 
 .search-form { display: flex; gap: 8px; }
 .search-form input, .save-form input {
@@ -167,6 +167,7 @@ p { margin: 0; }
 .search-hero { text-align: center; padding-top: 5vh; margin-bottom: 24px; max-height: 460px; overflow: hidden;
   transition: max-height .45s var(--ease), opacity .3s, padding .45s, margin .45s; }
 .search-hero .lede { color: var(--muted); margin-top: 8px; font-size: 1.075rem; }
+.search-hero h1, .search-hero .lede { text-wrap: balance; }
 .search-form { position: relative; }
 .search-form input { padding-right: 44px; border: 2px solid var(--accent);
   transition: box-shadow .3s var(--ease), border-color .3s; }
@@ -277,8 +278,10 @@ body:has(.search-shell) {
 }
 body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surface) 85%, transparent); }
 .hero-art { display: block; width: 180px; height: 150px; margin: 0 auto 12px; }
-.search-trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; margin-top: 18px; font-size: .85rem; color: var(--muted); }
-.search-trust li { display: flex; align-items: center; gap: 6px; }
+/* One centred line under the search box; stacked and centred on phones. */
+.search-trust { display: flex; justify-content: center; gap: 8px 22px; margin-top: 18px; font-size: .85rem; color: var(--muted); }
+.search-trust li { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+@media (max-width: 560px) { .search-trust { flex-direction: column; align-items: center; } }
 .search-trust li::before { content: "✓"; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
   background: var(--accent-soft); color: var(--accent-strong); font-size: .7rem; font-weight: 700; }
 .is-split .search-right { background: color-mix(in srgb, var(--bg) 70%, transparent); }
