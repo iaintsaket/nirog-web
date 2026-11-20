@@ -8,6 +8,7 @@ import { packLabel, percent, rupees, unitPriceLabel } from "@/lib/format";
 import { compareMatch } from "@/services/catalog";
 import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
+import { Loading } from "@/ui/Pulse";
 
 type State =
   | { kind: "loading" }
@@ -84,7 +85,7 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
     };
   }, [matchKey, searched]);
 
-  if (state.kind === "loading") return <p aria-busy="true">Finding substitutes…</p>;
+  if (state.kind === "loading") return <Loading>Finding cheaper substitutes…</Loading>;
   if (state.kind === "error") {
     return (
       <p role="alert" className="notice notice-error">

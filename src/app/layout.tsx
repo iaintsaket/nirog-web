@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AuthMenu } from "@/features/auth/AuthMenu";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { HomeLink } from "@/features/search/HomeLink";
+import { Pulse } from "@/ui/Pulse";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +19,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-IN">
       <body>
+        {/* Shown on the first load only (the layout is not re-rendered on navigation); fades out by CSS. */}
+        <div className="splash" aria-hidden="true">
+          <Pulse size="lg" />
+        </div>
         <AuthProvider>
           <header className="site-header">
             <div className="container header-row">

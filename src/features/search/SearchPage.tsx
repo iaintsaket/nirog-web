@@ -8,6 +8,7 @@ import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
 import { HeroArt } from "./HeroArt";
 import { HomeStats } from "./HomeStats";
+import { Loading } from "@/ui/Pulse";
 import { HOME_EVENT } from "./HomeLink";
 
 /** The page splits into list + prices once the query has this many characters. */
@@ -104,13 +105,17 @@ export function SearchPage() {
     <div className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}`}>
       <div className="search-left">
         <section className="search-hero">
-          <HeroArt />
-          <h1>Pay less for the same medicine</h1>
-          <p className="lede">
+          <div className="intro" style={{ "--i": 0 } as CSSProperties}>
+            <HeroArt />
+          </div>
+          <h1 className="intro" style={{ "--i": 1 } as CSSProperties}>
+            Pay less for the same medicine
+          </h1>
+          <p className="lede intro" style={{ "--i": 2 } as CSSProperties}>
             Same salts, strength and form, from Jan Aushadhi and other brands, with what you could save.
           </p>
         </section>
-        <form role="search" className="search-form" onSubmit={(e) => e.preventDefault()}>
+        <form role="search" className="search-form intro" style={{ "--i": 3 } as CSSProperties} onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="q" className="visually-hidden">
             Medicine name or salt
           </label>
@@ -141,7 +146,7 @@ export function SearchPage() {
           )}
         </form>
         {!split && (
-          <ul className="search-trust plain" aria-label="About the prices">
+          <ul className="search-trust plain intro" style={{ "--i": 4 } as CSSProperties} aria-label="About the prices">
             <li>Government Jan Aushadhi prices</li>
             <li>No ads or tie-ups</li>
           </ul>
@@ -187,9 +192,7 @@ type ListProps = {
 function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
   if (state.kind === "loading") {
     return (
-      <p className="results-note" aria-busy="true">
-        Searching…
-      </p>
+      <Loading>Searching…</Loading>
     );
   }
   if (state.kind === "error") {

@@ -113,7 +113,7 @@ test("search: the empty screen shows live figures about our prices, and nothing 
   expect(screen.getByRole("combobox", { name: /medicine/i })).toBeInTheDocument();
 });
 
-test("search: hovering a figure counts it up again from zero", async () => {
+test("search: figures count up from zero on load, and from just below on hover", async () => {
   let now = 0;
   let frames: FrameRequestCallback[] = [];
   const flush = (ms: number) => {
@@ -132,17 +132,18 @@ test("search: hovering a figure counts it up again from zero", async () => {
   });
   withAuth(<SearchPage />);
   const card = (await screen.findByText("Medicines we know")).parentElement!;
-  const value = () => card.querySelector("dd")?.textContent;
-  flush(2000);
-  expect(value()).toBe("1,000");
+  const value = () => Number(card.querySelector("dd")?.textContent?.replace(/,/g, ""));
+  expect(value()).toBe(0);
+  flush(3000);
+  expect(value()).toBe(1000);
 
   await userEvent.hover(card);
   flush(0);
-  expect(value()).toBe("0");
-  flush(500);
-  expect(Number(value()?.replace(/,/g, ""))).toBeGreaterThan(0);
-  flush(2000);
-  expect(value()).toBe("1,000");
+  expect(value()).toBe(970);
+  flush(200);
+  expect(value()).toBeGreaterThan(970);
+  flush(300);
+  expect(value()).toBe(1000);
 });
 
 test("search: the home link brings back the empty search screen", async () => {
