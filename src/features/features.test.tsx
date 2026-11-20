@@ -8,6 +8,7 @@ import { AuthProvider } from "./auth/AuthProvider";
 import { SignInPage } from "./auth/SignInPage";
 import { ComparePage } from "./compare/ComparePage";
 import { SavedPage } from "./saved/SavedPage";
+import { HomeLink } from "./search/HomeLink";
 import { SearchPage } from "./search/SearchPage";
 
 const withAuth = (ui: ReactNode) => render(<AuthProvider>{ui}</AuthProvider>);
@@ -79,6 +80,22 @@ test("search: starts from the URL query and shows empty and error states", async
   expect(await screen.findByRole("alert")).toHaveTextContent("Too many requests");
 });
 
+test("search: the home link brings back the empty search screen", async () => {
+  mockApi({ ...signedOut, "GET /v1/search": { groups: [], did_you_mean: [] } });
+  nav.params = new URLSearchParams("q=dolo");
+  withAuth(
+    <>
+      <HomeLink />
+      <SearchPage />
+    </>,
+  );
+  const box = screen.getByRole("combobox", { name: /medicine/i });
+  expect(box).toHaveValue("dolo");
+  await userEvent.click(screen.getByRole("link", { name: "Nirog home" }));
+  expect(box).toHaveValue("");
+  expect(screen.getByRole("heading", { name: "Pay less for the same medicine" })).toBeInTheDocument();
+});
+
 test("search: a brand we have no price for leads to medicines with its salt; the exact strength is marked", async () => {
   const sameSalt = (key: string) => ({
     ...signedOut,
@@ -112,22 +129,67 @@ test("search: a brand we have no price for leads to medicines with its salt; the
 });
 
 test("compare: shows the saving, badges and buy links; signed-in users can save", async () => {
-  const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison(), "POST /v1/saved": { id: "s1" } });
-  nav.params = new URLSearchParams("key=k1&searched=b1");
+  const key = "tablet|standard|atorvastatin:10mg|unit";
+  const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison({ key }), "POST /v1/saved": { id: "s1" } });
+  nav.params = new URLSearchParams(`key=${encodeURIComponent(key)}&searched=b1`);
   withAuth(<ComparePage />);
 
   expect(await screen.findByRole("status")).toHaveTextContent(
     "Save up to ₹190.92 per pack (95%) compared with Lipitor 10 Tablet by choosing Atorvastatin Tablets IP 10mg",
   );
+  const card = screen.getByRole("region", { name: "Lipitor 10 Tablet" });
+  const facts = Object.fromEntries(
+    within(card).getAllByRole("term").map((dt) => [dt.textContent, dt.nextElementSibling?.textContent]),
+  );
+  expect(facts).toEqual({
+    Composition: "Atorvastatin 10mg",
+    Form: "Tablet",
+    Pack: "10 tablets/capsules",
+    Price: "₹200.00 per pack",
+    "Per unit": "₹20.00 per tablet/capsule",
+    Maker: "Pfizer",
+  });
   const list = screen.getByRole("list", { name: "Substitutes, cheapest first" });
   expect(within(list).getByText("Cheapest")).toBeInTheDocument();
+  const rungs = within(list).getAllByRole("listitem");
+  expect(within(rungs[0]).getByText("Save ₹190.92 per pack")).toBeInTheDocument();
+  expect(within(rungs[1]).queryByText(/^Save/)).not.toBeInTheDocument();
   expect(within(list).getByText("You searched")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer");
 
   await userEvent.click(await screen.findByRole("button", { name: "Save" }));
   expect(await screen.findByText(/Saved\./)).toBeInTheDocument();
   const post = calls.find((c) => c.method === "POST")!;
-  expect(await post.json()).toEqual({ key: "k1", label: "Lipitor 10 Tablet", offer_id: "b1" });
+  expect(await post.json()).toEqual({ key, label: "Lipitor 10 Tablet", offer_id: "b1" });
+});
+
+test("compare: the Cheapest, Jan Aushadhi and You searched boxes filter the list; pressing again shows all", async () => {
+  const ja2 = offer({ id: "j2", source: "jan_aushadhi", name: "Atorvastatin JA Strip", unit_price_millipaise: 150000 });
+  const c = comparison();
+  mockApi({ ...signedOut, "GET /v1/compare": { ...c, offers: [c.offers[0], { offer: ja2, links: [] }, c.offers[1]], total_offers: 3, searched_index: 2 } });
+  nav.params = new URLSearchParams("key=k1&searched=b1");
+  withAuth(<ComparePage />);
+  const names = () =>
+    within(screen.getByRole("list", { name: "Substitutes, cheapest first" }))
+      .getAllByRole("listitem")
+      .map((li) => li.querySelector("strong")?.textContent);
+  const all = ["Atorvastatin Tablets IP 10mg", "Atorvastatin JA Strip", "Lipitor 10 Tablet"];
+  await screen.findByRole("status");
+  expect(names()).toEqual(all);
+
+  const cheapest = screen.getByRole("button", { name: /^Cheapest/ });
+  await userEvent.click(cheapest);
+  expect(cheapest).toHaveAttribute("aria-pressed", "true");
+  expect(names()).toEqual(["Atorvastatin Tablets IP 10mg"]);
+
+  await userEvent.click(screen.getByRole("button", { name: /^Jan Aushadhi/ }));
+  expect(cheapest).toHaveAttribute("aria-pressed", "false");
+  expect(names()).toEqual(["Atorvastatin Tablets IP 10mg", "Atorvastatin JA Strip"]);
+
+  await userEvent.click(screen.getByRole("button", { name: /^You searched/ }));
+  expect(names()).toEqual(["Lipitor 10 Tablet"]);
+  await userEvent.click(screen.getByRole("button", { name: "Show all 3" }));
+  expect(names()).toEqual(all);
 });
 
 test("compare: already cheapest, save failure, and not found", async () => {
