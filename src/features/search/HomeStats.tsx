@@ -24,12 +24,7 @@ function prefersStill(): boolean {
 function useProgress(running: boolean): number {
   const [p, setP] = useState(0);
   useEffect(() => {
-    if (!running) return;
-    if (prefersStill()) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- no animation: show the final numbers
-      setP(1);
-      return;
-    }
+    if (!running || prefersStill()) return;
     let frame = 0;
     const start = performance.now();
     const tick = (now: number) => {
@@ -45,7 +40,8 @@ function useProgress(running: boolean): number {
       clearTimeout(done);
     };
   }, [running]);
-  return p;
+  // Without motion the final numbers show on the first render, with no flash of zeros.
+  return running && prefersStill() ? 1 : p;
 }
 
 /** Live figures about our prices for the empty search screen. Shows nothing if they fail to load. */

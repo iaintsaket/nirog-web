@@ -300,8 +300,8 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 /* Live figures on the empty search screen. */
 .home-stats { margin-top: 28px; }
 .home-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; }
-.home-stat { display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border); border-radius: 12px;
-  padding: 12px 14px; background: var(--surface); text-align: left;
+.home-stat { display: flex; flex-direction: column; justify-content: space-between; align-items: center; border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 12px; background: var(--surface); text-align: center;
   transition: border-color .15s, transform .15s, box-shadow .15s; }
 .home-stat:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow); }
 .home-stat dt { font-size: .75rem; color: var(--muted); }
