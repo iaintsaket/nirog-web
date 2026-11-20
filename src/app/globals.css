@@ -16,7 +16,7 @@
   --focus: #2563eb;
   --radius: 12px;
   --shadow: 0 1px 2px rgb(16 24 20 / 6%), 0 2px 8px rgb(16 24 20 / 4%);
-  --glow-a: #d4f1e6;
+  --glow-a: #b9e6d2;
   --glow-b: #e3f0ff;
   --art-disc: #fbe0b4;
   color-scheme: light;
@@ -39,7 +39,7 @@
     --danger-soft: #3a1a17;
     --focus: #7aa2ff;
     --shadow: none;
-    --glow-a: #123328;
+    --glow-a: #17473a;
     --glow-b: #14233a;
     --art-disc: #3a2e1c;
     color-scheme: dark;
@@ -274,7 +274,7 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 /* Home look: soft mint and blue glow behind the search, family illustration, trust strip. */
 body:has(.search-shell) {
   background:
-    radial-gradient(640px 400px at 85% 8%, var(--glow-a), transparent 70%),
+    radial-gradient(760px 480px at 85% 8%, var(--glow-a), transparent 72%),
     radial-gradient(560px 380px at 8% 92%, var(--glow-b), transparent 70%),
     var(--bg);
   background-attachment: fixed;
@@ -287,7 +287,7 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 @media (max-width: 560px) { .search-trust { flex-direction: column; align-items: center; } }
 .search-trust li::before { content: "✓"; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
   background: var(--accent-soft); color: var(--accent-strong); font-size: .7rem; font-weight: 700; }
-.is-split .search-right { background: color-mix(in srgb, var(--bg) 70%, transparent); }
+.is-split .search-right { background: color-mix(in srgb, var(--bg) 35%, transparent); }
 @media (max-width: 760px) { .hero-art { width: 140px; height: 117px; } }
 
 /* Picked medicine: details first, the price comparison right below. */

@@ -105,7 +105,7 @@ export function SearchPage() {
 
   return (
     <div className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}`}>
-      {!split && <BackdropArt />}
+      <BackdropArt />
       <div className="search-left">
         <section className="search-hero">
           <div className="intro" style={{ "--i": 0 } as CSSProperties}>
