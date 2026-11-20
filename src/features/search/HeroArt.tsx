@@ -8,20 +8,10 @@ export function HeroArt() {
       <circle cx="118" cy="62" r="16" fill="#a86b47" />
       <path d="M102 60c0-14 10-22 18-20 10 2 15 10 14 22-6-8-20-10-32-2z" fill="#2b1d17" />
       <path d="M90 150c2-32 12-52 28-52s27 20 30 52z" fill="#0f7a55" />
-      {/* Blister strip: foil card with two rows of capsules. */}
-      <g transform="rotate(-8 91 113)">
-        <rect x="68" y="101" width="46" height="25" rx="3" fill="#dfe6ea" stroke="#8d9aa1" strokeWidth="1.5" />
-        <path d="M91 101v25" stroke="#8d9aa1" strokeWidth="1" strokeDasharray="2 2" />
-        {[73, 84, 96, 107].flatMap((x) =>
-          [105, 115].map((y) => (
-            <g key={`${x}-${y}`}>
-              <rect x={x - 1} y={y - 1} width="9" height="7" rx="3.5" fill="#fff" stroke="#b5c0c5" strokeWidth="0.8" />
-              <rect x={x} y={y} width="3.5" height="5" rx="2.5" fill="#e7a33e" />
-              <rect x={x + 3.5} y={y} width="3.5" height="5" rx="2.5" fill="#0f7a55" />
-            </g>
-          )),
-        )}
-      </g>
+      {/* Medicine strip: a flat card with two pills. */}
+      <rect x="74" y="104" width="34" height="18" rx="4" fill="#fff" />
+      <circle cx="84" cy="113" r="4" fill="#e7a33e" />
+      <circle cx="98" cy="113" r="4" fill="#e7a33e" />
       <text x="132" y="36" fontSize="18" fontWeight="700" fill="var(--accent)" fontFamily="system-ui, sans-serif">
         ₹
       </text>
