@@ -381,6 +381,35 @@ test("compare: clicking an alternative opens a side-by-side comparison with your
   expect(screen.queryByRole("region", { name: "Compare tray" })).not.toBeInTheDocument();
 });
 
+test("compare: with no cheaper exact substitute, close matches show what differs and link to their prices", async () => {
+  const only = comparison().offers[1];
+  mockApi({
+    ...signedOut,
+    "GET /v1/compare": comparison({ offers: [only], total_offers: 1, searched_index: 0, saving_per_pack_paise: 0, saving_bps: 0 }),
+    "GET /v1/close": {
+      matches: [
+        {
+          key: "topical|standard|x:1%|g",
+          salts_label: "Diclofenac 1.16% + Menthol 5%",
+          offers: 13,
+          cheapest: offer({ id: "e", name: "Ellynac Hot Gel", unit_price_millipaise: 150000, pack_unit: "g" }),
+          differences: ["Capsaicin 0.025% instead of 0.01%"],
+        },
+      ],
+    },
+  });
+  nav.params = new URLSearchParams("key=k1&searched=b1");
+  withAuth(<ComparePage />);
+  const close = await screen.findByRole("region", { name: "Close matches" });
+  expect(close).toHaveTextContent("Not exact substitutes");
+  expect(within(close).getByText("Capsaicin 0.025% instead of 0.01%")).toBeInTheDocument();
+  expect(within(close).getByText("Ellynac Hot Gel")).toBeInTheDocument();
+  expect(within(close).getByRole("link", { name: /See 13 prices/ })).toHaveAttribute(
+    "href",
+    `/compare?key=${encodeURIComponent("topical|standard|x:1%|g")}`,
+  );
+});
+
 test("compare: already cheapest, save failure, and not found", async () => {
   mockApi({
     "GET /v1/me": user,

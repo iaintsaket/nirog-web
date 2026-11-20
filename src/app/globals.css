@@ -449,3 +449,9 @@ html.splashing .brand .pulse { visibility: hidden; }
 @keyframes glide-left { from { opacity: 0; transform: translateX(60px) scale(.96); } }
 @media (prefers-reduced-motion: reduce) { .picked-card { animation: none; } }
 .rung-clickable { cursor: pointer; }
+
+/* Close matches: nearby formulas, clearly not substitutes. */
+.close-matches { margin-top: 8px; }
+.notice-warn { background: var(--warn-soft); border-radius: 10px; padding: 10px 14px; }
+.badge-diff { background: var(--warn-soft); color: #7a4b00; border-color: #e0b25c; }
+.close-link { align-self: flex-start; margin-top: auto; }

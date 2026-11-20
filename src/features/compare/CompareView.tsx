@@ -6,6 +6,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { SourceBadge } from "@/features/search/SourceBadge";
 import { formLabel, packLabel, percent, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
 import { compareMatch } from "@/services/catalog";
+import { CloseMatches } from "./CloseMatches";
 import { CompareDialog } from "./CompareDialog";
 import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
@@ -318,6 +319,8 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
           onClose={() => setOpen(null)}
         />
       )}
+
+      {c.saving_per_pack_paise <= 0 && <CloseMatches matchKey={c.key} />}
 
       <p className="small muted disclaimer">
         Prices are maximum retail prices from public lists and may differ at the shop. Nirog compares

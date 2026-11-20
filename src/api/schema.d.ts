@@ -54,6 +54,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["close"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/compare": {
         parameters: {
             query?: never;
@@ -184,6 +200,22 @@ export interface components {
             kind: components["schemas"]["LinkKindDto"];
             label: string;
             url: string;
+        };
+        CloseMatchDto: {
+            cheapest: components["schemas"]["OfferDto"];
+            /** @description What differs from your medicine, in plain words, e.g. "Capsaicin 0.025% instead of 0.01%". */
+            differences: string[];
+            key: string;
+            /**
+             * Format: int64
+             * @description How many offers have this formula.
+             */
+            offers: number;
+            salts_label: string;
+        };
+        /** @description Nearby formulas when there is no cheaper exact substitute. These are NOT substitutes. */
+        CloseResponse: {
+            matches: components["schemas"]["CloseMatchDto"][];
         };
         ComparedOffer: {
             links: components["schemas"]["BuyLinkDto"][];
@@ -371,6 +403,36 @@ export interface operations {
                 content?: never;
             };
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    close: {
+        parameters: {
+            query: {
+                /** @description Match key of your medicine (from search or compare). */
+                key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloseResponse"];
+                };
+            };
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
