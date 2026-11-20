@@ -168,7 +168,13 @@ p { margin: 0; }
   transition: max-height .45s var(--ease), opacity .3s, padding .45s, margin .45s; }
 .search-hero .lede { color: var(--muted); margin-top: 8px; font-size: 1.075rem; }
 .search-form { position: relative; }
-.search-form input { padding-right: 44px; border: 2px solid var(--accent); }
+.search-form input { padding-right: 44px; border: 2px solid var(--accent);
+  transition: box-shadow .3s var(--ease), border-color .3s; }
+/* The search box glows on every side when hovered or in use. */
+.search-form input:hover, .search-form input:focus-visible {
+  outline: none; box-shadow: 0 0 0 4px var(--accent-soft), 0 0 28px 4px color-mix(in srgb, var(--accent) 35%, transparent); }
+.search-form input:focus-visible { animation: glow-breathe 2.4s ease-in-out infinite; }
+@keyframes glow-breathe { 50% { box-shadow: 0 0 0 5px var(--accent-soft), 0 0 36px 8px color-mix(in srgb, var(--accent) 28%, transparent); } }
 .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: none;
   color: var(--muted); font-size: 1rem; padding: 6px 8px; cursor: pointer; border-radius: 6px; }
 .results-note { font-size: .875rem; color: var(--muted); margin: 14px 4px 6px; }
@@ -254,7 +260,7 @@ p { margin: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .search-shell *, .search-shell { transition-duration: 0s !important; animation-duration: 0s !important; }
-  .card-in, .bar, .badge-save, .rung-best::after { animation: none; }
+  .card-in, .bar, .badge-save, .rung-best::after, .search-form input { animation: none !important; }
 }
 
 .suggestions { display: flex; flex-wrap: wrap; gap: 6px; }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { AuthMenu } from "@/features/auth/AuthMenu";
 import { AuthProvider } from "@/features/auth/AuthProvider";
+import { HomeLink } from "@/features/search/HomeLink";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,9 +21,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <header className="site-header">
             <div className="container header-row">
-              <Link href="/" className="brand" aria-label="Nirog home">
-                <span className="brand-mark" aria-hidden="true">+</span> Nirog
-              </Link>
+              <HomeLink />
               <nav aria-label="Account">
                 <AuthMenu />
               </nav>

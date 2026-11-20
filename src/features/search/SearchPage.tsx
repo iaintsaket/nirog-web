@@ -7,6 +7,7 @@ import { CompareView } from "@/features/compare/CompareView";
 import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
 import { HeroArt } from "./HeroArt";
+import { HOME_EVENT } from "./HomeLink";
 
 /** The page splits into list + prices once the query has this many characters. */
 const MIN = 2;
@@ -71,6 +72,11 @@ export function SearchPage() {
     setSheetOpen(false);
     setState({ kind: "loading" });
   }
+
+  useEffect(() => {
+    window.addEventListener(HOME_EVENT, clear);
+    return () => window.removeEventListener(HOME_EVENT, clear);
+  }, []);
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Escape") {

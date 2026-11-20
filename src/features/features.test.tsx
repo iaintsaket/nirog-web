@@ -8,6 +8,7 @@ import { AuthProvider } from "./auth/AuthProvider";
 import { SignInPage } from "./auth/SignInPage";
 import { ComparePage } from "./compare/ComparePage";
 import { SavedPage } from "./saved/SavedPage";
+import { HomeLink } from "./search/HomeLink";
 import { SearchPage } from "./search/SearchPage";
 
 const withAuth = (ui: ReactNode) => render(<AuthProvider>{ui}</AuthProvider>);
@@ -77,6 +78,22 @@ test("search: starts from the URL query and shows empty and error states", async
   mockApi({ ...signedOut, "GET /v1/search": () => Response.json({ error: "x", message: "Too many requests" }, { status: 429 }) });
   withAuth(<SearchPage />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Too many requests");
+});
+
+test("search: the home link brings back the empty search screen", async () => {
+  mockApi({ ...signedOut, "GET /v1/search": { groups: [], did_you_mean: [] } });
+  nav.params = new URLSearchParams("q=dolo");
+  withAuth(
+    <>
+      <HomeLink />
+      <SearchPage />
+    </>,
+  );
+  const box = screen.getByRole("combobox", { name: /medicine/i });
+  expect(box).toHaveValue("dolo");
+  await userEvent.click(screen.getByRole("link", { name: "Nirog home" }));
+  expect(box).toHaveValue("");
+  expect(screen.getByRole("heading", { name: "Pay less for the same medicine" })).toBeInTheDocument();
 });
 
 test("search: a brand we have no price for leads to medicines with its salt; the exact strength is marked", async () => {
