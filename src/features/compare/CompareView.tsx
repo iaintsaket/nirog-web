@@ -113,7 +113,7 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
     <div className="stack-lg compare">
       {picked && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
       <section className="stack">
-        <Sub className="h3">Same medicine, other prices</Sub>
+        <Sub className="h2">Alternatives</Sub>
         <div className="stats" role="group" aria-label="Quick filters">
           {boxes.map(({ f, offer }, n) => (
             <button
