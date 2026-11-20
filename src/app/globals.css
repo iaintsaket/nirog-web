@@ -222,9 +222,9 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 /* Substitutes as a grid of small upright cards (3 across in the prices panel, 1-2 on phones):
    name, price per unit, tags, maker and pack, a slim bar, then links pinned to the bottom. */
 .ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
-.rung { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: 14px;
+.rung { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: 14px;
   background: var(--surface); transition: border-color .2s, box-shadow .25s var(--ease), transform .2s var(--ease); }
-.ladder .rung:hover { border-color: var(--accent); transform: translateY(-2px);
+.ladder .rung:hover { border-color: var(--accent); transform: scale(1.03); z-index: 2;
   box-shadow: 0 0 0 3px var(--accent-soft), 0 0 26px 4px color-mix(in srgb, var(--accent) 30%, transparent); }
 .rung-best { border-color: var(--accent); position: relative; overflow: hidden;
   background: linear-gradient(135deg, var(--accent-soft), var(--surface) 70%); box-shadow: 0 6px 24px -12px var(--accent); }
@@ -235,7 +235,7 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 @keyframes shine { to { transform: translateX(100%); } }
 .rung-you { border-color: #d9a441; background: var(--warn-soft); }
 .rung-top { display: flex; flex-direction: column; gap: 4px; }
-.rung-title { min-width: 0; overflow-wrap: anywhere; }
+.rung-title { min-width: 0; overflow-wrap: break-word; }
 .rung-price { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.15rem; }
 .rung-best .rung-price { color: var(--accent-strong); }
 .rung-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -396,7 +396,6 @@ html.splashing .brand .pulse { visibility: hidden; }
 
 /* Click an alternative's name, or add up to 3 to the tray, to compare side by side with yours. */
 .rung-open { all: unset; cursor: pointer; }
-.rung-open:hover .rung-title, .rung-open:focus-visible .rung-title { color: var(--accent-strong); text-decoration: underline; }
 .rung-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 .add-compare { align-self: flex-start; font: inherit; font-size: .78rem; padding: 3px 10px; border-radius: 999px; cursor: pointer;
   border: 1px dashed var(--accent); background: transparent; color: var(--accent-strong); }
