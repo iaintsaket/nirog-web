@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Comparison } from "@/api/client";
+import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { SourceBadge } from "@/features/search/SourceBadge";
 import { packLabel, percent, rupees, unitPriceLabel } from "@/lib/format";
@@ -14,17 +14,64 @@ type State =
   | { kind: "done"; data: Comparison }
   | { kind: "error"; message: string };
 
+type Row = { offer: Offer; index: number };
+
+/**
+ * A summary box that doubles as a quick filter on the list below. Add a filter by adding an entry.
+ * `pick` chooses the offer the box shows (no offer → no box); `keep` decides which rows stay.
+ */
+type QuickFilter = {
+  id: string;
+  label: string;
+  /** Completes "Showing only …" while the filter is on. */
+  shows: string;
+  pick: (c: Comparison) => Offer | undefined;
+  note: (o: Offer) => string;
+  keep: (row: Row, c: Comparison, picked: Offer) => boolean;
+  best?: boolean;
+};
+
+const QUICK_FILTERS: QuickFilter[] = [
+  {
+    id: "searched",
+    label: "You searched",
+    shows: "the medicine you searched",
+    pick: (c) => (c.searched_index != null ? c.offers[c.searched_index]?.offer : undefined),
+    note: (o) => o.name,
+    keep: (r, c) => r.index === c.searched_index,
+  },
+  {
+    id: "cheapest",
+    label: "Cheapest",
+    shows: "the cheapest",
+    pick: (c) => c.offers[0]?.offer,
+    note: (o) => o.name,
+    keep: (r, _c, p) => r.offer.unit_price_millipaise === p.unit_price_millipaise,
+    best: true,
+  },
+  {
+    id: "jan_aushadhi",
+    label: "Jan Aushadhi",
+    shows: "Jan Aushadhi medicines",
+    pick: (c) => c.offers.find((o) => o.offer.source === "jan_aushadhi")?.offer,
+    note: () => "At any Kendra",
+    keep: (r) => r.offer.source === "jan_aushadhi",
+  },
+];
+
 type Props = { matchKey: string; searched?: string; headingLevel?: "h1" | "h2" };
 
 /** Every exact substitute for one match key, cheapest first, with the saving and buy links. */
 export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
+  const [filter, setFilter] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
     let live = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading state for a new key
     setState({ kind: "loading" });
+    setFilter(null);
     compareMatch(matchKey, searched).then((r) => {
       if (!live) return;
       setState(r.ok ? { kind: "done", data: r.data } : { kind: "error", message: r.message });
@@ -46,7 +93,14 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
   const c = state.data;
   const cheapest = c.offers[0]?.offer;
   const base = c.searched_index != null ? c.offers[c.searched_index]?.offer : undefined;
-  const ja = c.offers.find((o) => o.offer.source === "jan_aushadhi")?.offer;
+  const boxes = QUICK_FILTERS.flatMap((f) => {
+    const offer = f.pick(c);
+    return offer ? [{ f, offer }] : [];
+  });
+  const active = boxes.find((b) => b.f.id === filter);
+  const rows = c.offers
+    .map(({ offer, links }, index) => ({ offer, links, index }))
+    .filter((r) => !active || active.f.keep(r, c, active.offer));
   const maxUnit = Math.max(...c.offers.map((o) => o.offer.unit_price_millipaise), 1);
   const picked = base ?? cheapest;
   const Sub = headingLevel === "h1" ? "h2" : "h3";
@@ -56,29 +110,21 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
       {picked && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
       <section className="stack">
         <Sub className="h3">Same medicine, other prices</Sub>
-        <dl className="stats">
-          {base && (
-            <div className="stat">
-              <dt>You searched</dt>
-              <dd className="stat-price">{rupees(base.unit_price_millipaise / 1000)}</dd>
-              <dd className="stat-name">{base.name}</dd>
-            </div>
-          )}
-          {cheapest && (
-            <div className="stat stat-best">
-              <dt>Cheapest</dt>
-              <dd className="stat-price">{rupees(cheapest.unit_price_millipaise / 1000)}</dd>
-              <dd className="stat-name">{cheapest.name}</dd>
-            </div>
-          )}
-          {ja && (
-            <div className="stat">
-              <dt>Jan Aushadhi</dt>
-              <dd className="stat-price">{rupees(ja.unit_price_millipaise / 1000)}</dd>
-              <dd className="stat-name">At any Kendra</dd>
-            </div>
-          )}
-        </dl>
+        <div className="stats" role="group" aria-label="Quick filters">
+          {boxes.map(({ f, offer }) => (
+            <button
+              key={f.id}
+              type="button"
+              className={`stat${f.best ? " stat-best" : ""}`}
+              aria-pressed={filter === f.id}
+              onClick={() => setFilter((cur) => (cur === f.id ? null : f.id))}
+            >
+              <span className="stat-label">{f.label}</span>
+              <span className="stat-price">{rupees(offer.unit_price_millipaise / 1000)}</span>
+              <span className="stat-name">{f.note(offer)}</span>
+            </button>
+          ))}
+        </div>
         {c.saving_per_pack_paise > 0 && cheapest && (
           <p className="saving" role="status">
             Save up to <strong>{rupees(c.saving_per_pack_paise)}</strong> per pack (
@@ -94,11 +140,20 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
           {c.total_offers === 1 ? "" : "s"}, cheapest first by price per unit. Same salts, strength,
           form and release type.
         </p>
+        {active && (
+          <p className="small filter-note">
+            Showing only {active.f.shows}
+            ({rows.length}).{" "}
+            <button type="button" className="link-button" onClick={() => setFilter(null)}>
+              Show all {c.offers.length}
+            </button>
+          </p>
+        )}
         {user && <SaveButton matchKey={c.key} offerId={base?.id} defaultLabel={base?.name ?? cheapest?.name ?? ""} />}
       </section>
 
       <ol className="ladder plain" aria-label="Substitutes, cheapest first">
-        {c.offers.map(({ offer, links }, i) => {
+        {rows.map(({ offer, links, index: i }) => {
           const you = i === c.searched_index;
           const tone = you ? " bar-you" : i === 0 || offer.source === "jan_aushadhi" ? " bar-good" : "";
           return (
