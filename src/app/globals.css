@@ -161,7 +161,9 @@ p { margin: 0; }
 
 /* Split search: one centred box that slides left once two letters are typed;
    prices slide in on the right. On phones the prices open as a bottom sheet. */
-.container.main:has(.search-shell) { max-width: 1240px; }
+.container.main:has(.search-shell),
+body:has(.search-shell) .site-header .container,
+body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 .search-shell { display: flex; align-items: flex-start; }
 .search-left { flex: 0 0 100%; min-width: 0; transition: flex-basis .55s var(--ease); }
 .search-left > * { max-width: 640px; margin-left: auto; margin-right: auto; transition: max-width .55s var(--ease); }
