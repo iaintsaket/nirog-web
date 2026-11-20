@@ -6,6 +6,7 @@ import type { BrandAlias, SearchGroup } from "@/api/client";
 import { CompareView } from "@/features/compare/CompareView";
 import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
+import { BackdropArt } from "./BackdropArt";
 import { HeroArt } from "./HeroArt";
 import { HomeStats } from "./HomeStats";
 import { Loading } from "@/ui/Pulse";
@@ -104,6 +105,7 @@ export function SearchPage() {
 
   return (
     <div className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}`}>
+      {!split && <BackdropArt />}
       <div className="search-left">
         <section className="search-hero">
           <div className="intro" style={{ "--i": 0 } as CSSProperties}>
