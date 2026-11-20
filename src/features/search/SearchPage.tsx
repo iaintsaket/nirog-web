@@ -4,9 +4,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { BrandAlias, SearchGroup } from "@/api/client";
 import { CompareView } from "@/features/compare/CompareView";
+import { MedicineCard } from "@/features/compare/MedicineCard";
 import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
 import { BackdropArt } from "./BackdropArt";
+import { Divider, useSplit } from "./Divider";
 import { HeroArt } from "./HeroArt";
 import { HomeStats } from "./HomeStats";
 import { Loading } from "@/ui/Pulse";
@@ -29,6 +31,22 @@ export function compareHref(key: string, searched?: string): string {
   return `/compare?${p.toString()}`;
 }
 
+/** Wide screens show search and prices side by side; phones use the slide-up sheet. */
+function useWide(): boolean {
+  const query = "(min-width: 761px)";
+  const [wide, setWide] = useState(true);
+  useEffect(() => {
+    const m = window.matchMedia?.(query);
+    if (!m) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read the screen size after mount
+    setWide(m.matches);
+    const on = () => setWide(m.matches);
+    m.addEventListener?.("change", on);
+    return () => m.removeEventListener?.("change", on);
+  }, []);
+  return wide;
+}
+
 function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value);
   useEffect(() => {
@@ -45,6 +63,8 @@ export function SearchPage() {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [sel, setSel] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const split2 = useSplit();
+  const wide = useWide();
 
   const typed = text.trim();
   const split = typed.length >= MIN;
@@ -101,10 +121,15 @@ export function SearchPage() {
   }
 
   const [detailKey, detailSearched] = pickedKey.split("\n");
+  /** Once a medicine is picked on a wide screen, its details sit at the bottom left and the right shows alternatives. */
+  const detailsLeft = split && sheetOpen && wide && !!picked?.matched[0];
   const expanded = split && groups.length > 0;
 
   return (
-    <div className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}`}>
+    <div
+      className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}${split && split2.folded ? " left-collapsed" : ""}`}
+      style={{ "--left-w": `${split2.width}px` } as CSSProperties}
+    >
       <BackdropArt />
       <div className="search-left">
         <section className="search-hero">
@@ -169,8 +194,19 @@ export function SearchPage() {
             onSuggest={setText}
           />
         )}
+        {detailsLeft && picked?.matched[0] && (
+          <div className="picked-card" key={picked.key}>
+            <MedicineCard offer={picked.matched[0]} matchKey={picked.key} headingLevel="h2" />
+          </div>
+        )}
       </div>
 
+      {split && !split2.folded && <Divider width={split2.width} onResize={split2.resize} />}
+      {split && split2.folded && (
+        <button type="button" className="unfold" aria-label="Show search" onClick={split2.unfold}>
+          ›
+        </button>
+      )}
       <section className="search-right" aria-label="Prices">
         <div className="sheet-bar">
           <span className="sheet-grab" aria-hidden="true" />
@@ -179,7 +215,13 @@ export function SearchPage() {
           </button>
         </div>
         {split && detailKey && (
-          <CompareView key={pickedKey} matchKey={detailKey} searched={detailSearched || undefined} headingLevel="h2" />
+          <CompareView
+            key={pickedKey}
+            matchKey={detailKey}
+            searched={detailSearched || undefined}
+            headingLevel="h2"
+            hideCard={detailsLeft}
+          />
         )}
       </section>
     </div>

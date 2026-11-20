@@ -73,7 +73,7 @@ test("search: picking a medicine hides the other matches until asked", async () 
       did_you_mean: [],
       groups: [
         { key: "k1", salts_label: "Paracetamol 500mg", matched: [offer({ id: "a", name: "Dolo 500 Tablet" })] },
-        { key: "k2", salts_label: "Paracetamol 650mg", matched: [offer({ id: "b", name: "Dolo 650 Tablet" })] },
+        { key: "k2", salts_label: "Paracetamol 650mg", matched: [offer({ id: "b", name: "Dolo 650 Tablet", salts_label: "Paracetamol 650mg" })] },
       ],
     },
     "GET /v1/compare": comparison(),
@@ -84,13 +84,45 @@ test("search: picking a medicine hides the other matches until asked", async () 
     (await within(await screen.findByRole("listbox")).findAllByRole("option")).map((o) => o.querySelector("strong")?.textContent);
   expect(await names()).toEqual(["Dolo 500 Tablet", "Dolo 650 Tablet"]);
 
+  const prices = screen.getByRole("region", { name: "Prices" });
+  expect(await within(prices).findByRole("region", { name: "Lipitor 10 Tablet" })).toBeInTheDocument();
+
   await userEvent.click(screen.getByText("Dolo 650 Tablet"));
   expect(await names()).toEqual(["Dolo 650 Tablet"]);
-  expect(screen.getByRole("option")).toHaveAttribute("aria-selected", "true");
+  // Picked: its details move to the left, and the prices panel shows only the alternatives.
+  const details = screen.getByRole("region", { name: "Dolo 650 Tablet" });
+  expect(prices).not.toContainElement(details);
+  expect(within(details).getByText("Paracetamol 650mg")).toBeInTheDocument();
+  await waitFor(() => expect(within(prices).queryByRole("region", { name: "Lipitor 10 Tablet" })).not.toBeInTheDocument());
+  expect(within(screen.getByRole("listbox")).getByRole("option")).toHaveAttribute("aria-selected", "true");
 
   await userEvent.click(screen.getByRole("button", { name: "Show all 2 medicines" }));
   expect(await names()).toEqual(["Dolo 500 Tablet", "Dolo 650 Tablet"]);
-  expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+  expect(within(screen.getByRole("listbox")).getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+});
+
+test("search: the divider resizes the panels and can fold the search away, with a button to bring it back", async () => {
+  mockApi({
+    ...signedOut,
+    "GET /v1/search": { did_you_mean: [], groups: [{ key: "k1", salts_label: "Paracetamol 650mg", matched: [offer({ name: "Dolo 650 Tablet" })] }] },
+    "GET /v1/compare": comparison(),
+  });
+  nav.params = new URLSearchParams("q=dolo");
+  withAuth(<SearchPage />);
+  await screen.findByRole("listbox");
+  const divider = screen.getByRole("separator", { name: "Resize search and prices" });
+  expect(divider).toHaveAttribute("aria-valuenow", "380");
+
+  divider.focus();
+  await userEvent.keyboard("{ArrowRight}");
+  expect(divider).toHaveAttribute("aria-valuenow", "404");
+  await userEvent.keyboard("{Home}");
+  const back = screen.getByRole("button", { name: "Show search" });
+  expect(document.querySelector(".search-shell")).toHaveClass("left-collapsed");
+
+  await userEvent.click(back);
+  expect(document.querySelector(".search-shell")).not.toHaveClass("left-collapsed");
+  expect(screen.getByRole("separator", { name: "Resize search and prices" })).toHaveAttribute("aria-valuenow", "404");
 });
 
 test("search: starts from the URL query and shows empty and error states", async () => {

@@ -198,13 +198,13 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
   visibility: hidden; transition: opacity .45s .2s, transform .55s .15s var(--ease), visibility 0s .55s; }
 .sheet-bar { display: none; }
 
-.is-split .search-left { flex-basis: 380px; }
+.is-split .search-left { flex-basis: var(--left-w, 380px); }
 .is-split .search-left > * { max-width: 100%; }
 .is-split .search-hero { max-height: 0; opacity: 0; padding-top: 0; margin-bottom: 0; }
 .is-split .search-form input { border-width: 1px; }
 .is-split .search-right { opacity: 1; transform: none; pointer-events: auto; visibility: visible; overflow: visible;
   transition: opacity .45s .2s, transform .55s .15s var(--ease), visibility 0s;
-  position: sticky; top: 16px; margin-left: 28px; padding-left: 28px; border-left: 1px solid var(--border); }
+  position: sticky; top: 16px; padding-left: 8px; }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0 0; }
 .filter-note { color: var(--muted); }
@@ -422,3 +422,28 @@ html.splashing .brand .pulse { visibility: hidden; }
 .compare-savings li { padding: 8px 12px; border-radius: 10px; }
 .save-yes { background: var(--accent-soft); }
 .save-no { background: var(--bg); color: var(--muted); }
+
+/* Draggable divider between search and prices; dragging far left folds the search away. */
+.divider { display: none; }
+.is-split .divider { display: flex; justify-content: center; align-self: stretch; flex: 0 0 28px; margin-left: 12px; cursor: col-resize;
+  position: relative; z-index: 2; touch-action: none; }
+.divider::before { content: ""; width: 1px; height: 100%; background: var(--border); transition: background .2s, width .2s; }
+.divider-grip { position: sticky; top: 40vh; margin-left: -1px; width: 8px; height: 44px; border-radius: 999px; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); position: absolute; top: 120px; left: 50%; }
+.divider:hover::before, .divider:focus-visible::before, .divider.is-dragging::before { background: var(--accent); width: 2px; }
+.divider:hover .divider-grip, .divider.is-dragging .divider-grip { border-color: var(--accent); }
+.divider:focus-visible { outline: none; }
+.search-shell:has(.divider.is-dragging) .search-left { transition: none; user-select: none; }
+.left-collapsed .search-left { flex-basis: 0 !important; opacity: 0; overflow: hidden; pointer-events: none; }
+.unfold { position: sticky; top: 40vh; align-self: flex-start; flex: none; margin-right: 12px; width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--accent); background: var(--surface); color: var(--accent-strong); font-size: 1.3rem; line-height: 1; cursor: pointer;
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 20px 2px color-mix(in srgb, var(--accent) 30%, transparent); z-index: 3; }
+.unfold:hover { background: var(--accent); color: #fff; }
+@media (max-width: 760px) { .is-split .divider, .unfold { display: none; } }
+
+/* A picked medicine's details glide over to the bottom of the left panel and stay in view. */
+.picked-card { position: sticky; bottom: 16px; margin-top: 18px; animation: glide-left .6s var(--ease) both; }
+.picked-card .med-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.picked-card .med-card { box-shadow: 0 14px 34px -18px rgb(120 80 10 / 35%); }
+@keyframes glide-left { from { opacity: 0; transform: translateX(60px) scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .picked-card { animation: none; } }

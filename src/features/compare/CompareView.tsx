@@ -82,10 +82,16 @@ const QUICK_FILTERS: QuickFilter[] = [
   },
 ];
 
-type Props = { matchKey: string; searched?: string; headingLevel?: "h1" | "h2" };
+type Props = {
+  matchKey: string;
+  searched?: string;
+  headingLevel?: "h1" | "h2";
+  /** The page shows the medicine's details elsewhere (the search page's left panel). */
+  hideCard?: boolean;
+};
 
 /** Every exact substitute for one match key, cheapest first, with the saving and buy links. */
-export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) {
+export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard = false }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [filter, setFilter] = useState<string | null>(null);
   const [dearestFirst, setDearestFirst] = useState(false);
@@ -139,7 +145,7 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
 
   return (
     <div className="stack-lg compare">
-      {picked && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
+      {picked && !hideCard && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
       <section className="stack">
         <div className="alt-head">
           <Sub className="h2">Alternatives</Sub>
