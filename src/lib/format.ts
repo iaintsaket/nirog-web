@@ -42,3 +42,22 @@ export function percent(bps: number): string {
 export function sourceLabel(source: Offer["source"]): string {
   return source === "jan_aushadhi" ? "Jan Aushadhi" : "Brand";
 }
+
+const FORMS: Record<string, string> = {
+  tablet: "Tablet",
+  capsule: "Capsule",
+  liquid: "Syrup or liquid",
+  injection: "Injection",
+  topical: "Cream, gel or ointment",
+  inhaler: "Inhaler",
+  "eye-ear": "Eye or ear drops",
+  other: "Other",
+};
+
+/** The form inside a match key ("salts|form|release|unit") → "Tablet", "Capsule, extended release". */
+export function formLabel(matchKey: string): string | undefined {
+  const [, form, release] = matchKey.split("|");
+  const name = form ? FORMS[form] : undefined;
+  if (!name) return undefined;
+  return release === "extended" ? `${name}, extended release` : name;
+}
