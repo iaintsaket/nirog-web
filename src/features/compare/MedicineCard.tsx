@@ -18,7 +18,7 @@ export function MedicineCard({ offer, matchKey, headingLevel: Heading }: Props) 
     ["Maker", offer.manufacturer],
   ];
   return (
-    <section className="med-card" aria-labelledby={id}>
+    <section className="med-card card-in" aria-labelledby={id}>
       <div className="med-card-head">
         <Heading id={id} className="h2">
           {offer.name}

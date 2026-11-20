@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { SourceBadge } from "@/features/search/SourceBadge";
@@ -13,6 +13,9 @@ type State =
   | { kind: "loading" }
   | { kind: "done"; data: Comparison }
   | { kind: "error"; message: string };
+
+/** Place in the entrance line-up: cards land one after another. */
+const order = (i: number) => ({ "--i": i }) as CSSProperties;
 
 type Row = { offer: Offer; index: number };
 
@@ -111,11 +114,12 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
       <section className="stack">
         <Sub className="h3">Same medicine, other prices</Sub>
         <div className="stats" role="group" aria-label="Quick filters">
-          {boxes.map(({ f, offer }) => (
+          {boxes.map(({ f, offer }, n) => (
             <button
               key={f.id}
               type="button"
-              className={`stat${f.best ? " stat-best" : ""}`}
+              className={`stat card-in${f.best ? " stat-best" : ""}`}
+              style={order(1 + n)}
               aria-pressed={filter === f.id}
               onClick={() => setFilter((cur) => (cur === f.id ? null : f.id))}
             >
@@ -126,7 +130,7 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
           ))}
         </div>
         {c.saving_per_pack_paise > 0 && cheapest && (
-          <p className="saving" role="status">
+          <p className="saving card-in" role="status" style={order(4)}>
             Save up to <strong>{rupees(c.saving_per_pack_paise)}</strong> per pack (
             {percent(c.saving_bps)}){base ? <> compared with {base.name}</> : null} by choosing{" "}
             <strong>{cheapest.name}</strong>.
@@ -153,11 +157,15 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
       </section>
 
       <ol className="ladder plain" aria-label="Substitutes, cheapest first">
-        {rows.map(({ offer, links, index: i }) => {
+        {rows.map(({ offer, links, index: i }, n) => {
           const you = i === c.searched_index;
           const tone = you ? " bar-you" : i === 0 || offer.source === "jan_aushadhi" ? " bar-good" : "";
           return (
-            <li key={offer.id} className={`rung${you ? " rung-you" : i === 0 ? " rung-best" : ""}`}>
+            <li
+              key={offer.id}
+              className={`rung card-in${you ? " rung-you" : i === 0 ? " rung-best" : ""}`}
+              style={order(5 + Math.min(n, 10))}
+            >
               <div className="rung-top">
                 <strong className="rung-title">{offer.name}</strong>
                 <span className="rung-price">{unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}</span>
@@ -166,6 +174,11 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
                 <SourceBadge source={offer.source} />
                 {i === 0 && <span className="badge badge-cheapest">Cheapest</span>}
                 {you && <span className="badge badge-searched">You searched</span>}
+                {base && offer.unit_price_millipaise < base.unit_price_millipaise && (
+                  <span className="badge badge-save">
+                    Save {rupees(((base.unit_price_millipaise - offer.unit_price_millipaise) * base.pack_count) / 1000)} per pack
+                  </span>
+                )}
                 <span className="muted small rung-meta">
                   {offer.manufacturer} · {rupees(offer.price_paise)} for {packLabel(offer.pack_count, offer.pack_unit)}
                 </span>

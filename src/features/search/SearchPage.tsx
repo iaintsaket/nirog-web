@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { BrandAlias, SearchGroup } from "@/api/client";
 import { CompareView } from "@/features/compare/CompareView";
 import { shortUnitPrice } from "@/lib/format";
@@ -240,8 +240,8 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
               id={`result-${i}`}
               role="option"
               aria-selected={i === sel}
-              className="result"
-              style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}
+              className="result card-in"
+              style={{ "--i": Math.min(i, 10) } as CSSProperties}
               onClick={() => onPick(i)}
             >
               <span className="result-main">

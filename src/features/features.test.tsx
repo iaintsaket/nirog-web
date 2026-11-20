@@ -134,6 +134,9 @@ test("compare: shows the saving, badges and buy links; signed-in users can save"
   });
   const list = screen.getByRole("list", { name: "Substitutes, cheapest first" });
   expect(within(list).getByText("Cheapest")).toBeInTheDocument();
+  const rungs = within(list).getAllByRole("listitem");
+  expect(within(rungs[0]).getByText("Save ₹190.92 per pack")).toBeInTheDocument();
+  expect(within(rungs[1]).queryByText(/^Save/)).not.toBeInTheDocument();
   expect(within(list).getByText("You searched")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer");
 
