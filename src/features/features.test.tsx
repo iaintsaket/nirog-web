@@ -253,7 +253,7 @@ test("search: a brand we have no price for leads to medicines with its salt; the
   );
 });
 
-test("compare: shows the saving, badges and buy links; signed-in users can save", async () => {
+test("compare: shows the saving and badges (shop links only in the comparison); signed-in users can save", async () => {
   const key = "tablet|standard|atorvastatin:10mg|unit";
   const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison({ key }), "POST /v1/saved": { id: "s1" } });
   nav.params = new URLSearchParams(`key=${encodeURIComponent(key)}&searched=b1`);
@@ -280,7 +280,8 @@ test("compare: shows the saving, badges and buy links; signed-in users can save"
   expect(within(rungs[0]).getByText("Save ₹190.92 per pack")).toBeInTheDocument();
   expect(within(rungs[1]).queryByText(/^Save/)).not.toBeInTheDocument();
   expect(within(list).getByText("You searched")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer");
+  // Shop links live in the comparison window, not on the cards.
+  expect(within(list).queryByRole("link")).not.toBeInTheDocument();
 
   await userEvent.click(await screen.findByRole("button", { name: "Save" }));
   expect(await screen.findByText(/Saved\./)).toBeInTheDocument();
@@ -355,23 +356,22 @@ test("compare: clicking an alternative opens a side-by-side comparison with your
     "Per unit": ["₹20.00 per tablet/capsule", "₹0.91 per tablet/capsule"],
   });
   expect(within(dialog).getByText(/You save/)).toHaveTextContent("You save ₹190.92 per pack (95%) with Atorvastatin Tablets IP 10mg.");
-  expect(within(dialog).getByRole("link", { name: /Jan Aushadhi Kendra/ })).toBeInTheDocument();
+  expect(within(dialog).getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer");
 
   await userEvent.keyboard("{Escape}");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-  // Anywhere on the card opens it too, but its links and buttons keep their own jobs.
+  // Anywhere on the card opens it too, but its buttons keep their own jobs.
   const list = screen.getByRole("list", { name: "Substitutes, cheapest first" });
   await userEvent.click(within(list).getByText("₹0.91 each"));
   expect(screen.getByRole("dialog")).toBeInTheDocument();
   await userEvent.keyboard("{Escape}");
-  await userEvent.click(within(list).getByRole("link", { name: /Jan Aushadhi Kendra/ }));
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
   // Add to compare: a tray collects up to 3 alternatives and opens the same comparison.
   const add = screen.getByRole("button", { name: "Add Atorvastatin Tablets IP 10mg to compare" });
   await userEvent.click(add);
   expect(add).toHaveAttribute("aria-pressed", "true");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   const tray = screen.getByRole("region", { name: "Compare tray" });
   expect(tray).toHaveTextContent("1 of 3 added");
   await userEvent.click(within(tray).getByRole("button", { name: "Compare 2 medicines" }));

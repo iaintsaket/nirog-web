@@ -8,6 +8,7 @@ import { useCompare } from "./CompareContext";
 
 type Props = {
   offer: Offer;
+  /** Where to buy it: shown in the comparison window, not on the card, to keep cards short. */
   links?: BuyLink[];
   /** Place in the entrance line-up. */
   order: number;
@@ -95,15 +96,6 @@ export function MedicineTile({ offer, links = [], order, tone, tags, bar, priceP
         >
           {added ? "✓ Added" : "+ Compare"}
         </button>
-      )}
-      {links.length > 0 && (
-        <div className="rung-links">
-          {links.map((l) => (
-            <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="link-chip">
-              {l.label} ↗
-            </a>
-          ))}
-        </div>
       )}
       {footer}
     </li>
