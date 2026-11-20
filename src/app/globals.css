@@ -448,3 +448,4 @@ html.splashing .brand .pulse { visibility: hidden; }
 .picked-card .med-card { box-shadow: 0 14px 34px -18px rgb(120 80 10 / 35%); }
 @keyframes glide-left { from { opacity: 0; transform: translateX(60px) scale(.96); } }
 @media (prefers-reduced-motion: reduce) { .picked-card { animation: none; } }
+.rung-clickable { cursor: pointer; }

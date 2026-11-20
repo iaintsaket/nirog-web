@@ -225,8 +225,13 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
           return (
             <li
               key={offer.id}
-              className={`rung card-in${you ? " rung-you" : i === 0 ? " rung-best" : ""}`}
+              className={`rung card-in${you ? " rung-you" : i === 0 ? " rung-best" : ""}${picked && offer.id !== picked.id ? " rung-clickable" : ""}`}
               style={order(5 + Math.min(n, 10))}
+              onClick={(e) => {
+                // The whole card opens the comparison; its links and buttons keep their own jobs.
+                if (!picked || offer.id === picked.id || (e.target as HTMLElement).closest("a, button")) return;
+                setOpen([offer.id]);
+              }}
             >
               <div className="rung-top">
                 {picked && offer.id !== picked.id ? (

@@ -360,6 +360,14 @@ test("compare: clicking an alternative opens a side-by-side comparison with your
   await userEvent.keyboard("{Escape}");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
+  // Anywhere on the card opens it too, but its links and buttons keep their own jobs.
+  const list = screen.getByRole("list", { name: "Substitutes, cheapest first" });
+  await userEvent.click(within(list).getByText("₹0.91 each"));
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  await userEvent.keyboard("{Escape}");
+  await userEvent.click(within(list).getByRole("link", { name: /Jan Aushadhi Kendra/ }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
   // Add to compare: a tray collects up to 3 alternatives and opens the same comparison.
   const add = screen.getByRole("button", { name: "Add Atorvastatin Tablets IP 10mg to compare" });
   await userEvent.click(add);
