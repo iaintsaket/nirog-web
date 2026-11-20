@@ -4,7 +4,6 @@ export function HeroArt() {
     <svg className="hero-art" viewBox="0 0 180 150" role="img" aria-label="An elder and a young woman comparing a medicine strip">
       <circle cx="90" cy="80" r="68" fill="var(--art-disc)" />
       <circle cx="62" cy="58" r="17" fill="#8a5a3c" />
-      <path d="M48 52c4-14 24-18 31-2" fill="#e8e8e8" />
       <path d="M30 150c2-34 14-56 32-56s30 22 32 56z" fill="#e7a33e" />
       <circle cx="118" cy="62" r="16" fill="#a86b47" />
       <path d="M102 60c0-14 10-22 18-20 10 2 15 10 14 22-6-8-20-10-32-2z" fill="#2b1d17" />
