@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { BuyLink, Offer } from "@/api/client";
 import { packLabel, percent, rupees, sourceLabel, unitPriceLabel } from "@/lib/format";
 
@@ -37,7 +38,8 @@ export function CompareDialog({ mine, others, form, onClose }: Props) {
 
   const cols = [mine, ...others.map((o) => o.offer)];
   const rows = ROWS.filter((r) => r.value(mine, form) !== undefined);
-  return (
+  // Rendered at the top of the page so no panel, divider or sticky header can sit above it.
+  return createPortal(
     <div className="dialog-backdrop" onClick={onClose}>
       <div
         className="dialog card-in"
@@ -122,6 +124,7 @@ export function CompareDialog({ mine, others, form, onClose }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
