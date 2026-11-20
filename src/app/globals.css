@@ -346,3 +346,8 @@ html.splashing .brand .pulse { visibility: hidden; }
   .intro, .skeleton, .pulse-mark, .pulse-ring { animation: none; }
   .pulse-ring { display: none; }
 }
+
+/* After picking a medicine, the other matches fold away behind this. */
+.show-all { margin-top: 10px; width: 100%; font: inherit; font-size: .9rem; padding: 10px 14px; border-radius: 12px; cursor: pointer;
+  border: 1px dashed var(--border); background: transparent; color: var(--accent-strong); transition: border-color .15s, background .15s; }
+.show-all:hover { border-color: var(--accent); background: var(--accent-soft); }

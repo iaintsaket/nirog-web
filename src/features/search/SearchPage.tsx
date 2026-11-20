@@ -91,6 +91,7 @@ export function SearchPage() {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       const step = e.key === "ArrowDown" ? 1 : -1;
+      setSheetOpen(false);
       setSel((i) => (i + step + groups.length) % groups.length);
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -157,6 +158,8 @@ export function SearchPage() {
             q={typed}
             state={state}
             sel={sel}
+            picked={sheetOpen}
+            onShowAll={() => setSheetOpen(false)}
             onPick={(i) => {
               setSel(i);
               setSheetOpen(true);
@@ -185,11 +188,14 @@ type ListProps = {
   q: string;
   state: State;
   sel: number;
+  /** A medicine was picked: show only it, with a way back to the rest. */
+  picked: boolean;
+  onShowAll: () => void;
   onPick: (i: number) => void;
   onSuggest: (name: string) => void;
 };
 
-function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
+function ResultsList({ q, state, sel, picked, onShowAll, onPick, onSuggest }: ListProps) {
   if (state.kind === "loading") {
     return (
       <Loading>Searching…</Loading>
@@ -242,6 +248,7 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
       )}
       <ul id="search-results" role="listbox" aria-label="Matching medicines" className="results plain">
         {state.groups.map((g, i) => {
+          if (picked && i !== sel) return null;
           const first = g.matched[0];
           const more = g.matched.length - 1;
           return (
@@ -251,7 +258,7 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
               role="option"
               aria-selected={i === sel}
               className="result card-in"
-              style={{ "--i": Math.min(i, 10) } as CSSProperties}
+              style={{ "--i": picked ? 0 : Math.min(i, 10) } as CSSProperties}
               onClick={() => onPick(i)}
             >
               <span className="result-main">
@@ -267,6 +274,11 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
           );
         })}
       </ul>
+      {picked && state.groups.length > 1 && (
+        <button type="button" className="show-all card-in" onClick={onShowAll}>
+          Show all {state.groups.length} medicines
+        </button>
+      )}
     </>
   );
 }

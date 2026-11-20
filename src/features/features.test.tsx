@@ -66,6 +66,33 @@ test("search: splits after two letters; arrow keys pick a medicine and its price
   expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
 });
 
+test("search: picking a medicine hides the other matches until asked", async () => {
+  mockApi({
+    ...signedOut,
+    "GET /v1/search": {
+      did_you_mean: [],
+      groups: [
+        { key: "k1", salts_label: "Paracetamol 500mg", matched: [offer({ id: "a", name: "Dolo 500 Tablet" })] },
+        { key: "k2", salts_label: "Paracetamol 650mg", matched: [offer({ id: "b", name: "Dolo 650 Tablet" })] },
+      ],
+    },
+    "GET /v1/compare": comparison(),
+  });
+  nav.params = new URLSearchParams("q=dolo");
+  withAuth(<SearchPage />);
+  const names = async () =>
+    (await within(await screen.findByRole("listbox")).findAllByRole("option")).map((o) => o.querySelector("strong")?.textContent);
+  expect(await names()).toEqual(["Dolo 500 Tablet", "Dolo 650 Tablet"]);
+
+  await userEvent.click(screen.getByText("Dolo 650 Tablet"));
+  expect(await names()).toEqual(["Dolo 650 Tablet"]);
+  expect(screen.getByRole("option")).toHaveAttribute("aria-selected", "true");
+
+  await userEvent.click(screen.getByRole("button", { name: "Show all 2 medicines" }));
+  expect(await names()).toEqual(["Dolo 500 Tablet", "Dolo 650 Tablet"]);
+  expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+});
+
 test("search: starts from the URL query and shows empty and error states", async () => {
   mockApi({ ...signedOut, "GET /v1/search": { groups: [], did_you_mean: ["Dolo 650 Tablet"] } });
   nav.params = new URLSearchParams("q=dollo");
