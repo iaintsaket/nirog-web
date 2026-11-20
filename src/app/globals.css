@@ -134,6 +134,7 @@ p { margin: 0; }
 }
 .badge-jan_aushadhi { background: var(--ja-soft); color: var(--ja); border-color: transparent; }
 .badge-cheapest { background: var(--accent-soft); color: var(--accent-strong); border-color: transparent; }
+.badge-exact { background: var(--accent-soft); color: var(--accent-strong); border-color: transparent; margin-top: 0.25rem; justify-self: start; width: fit-content; }
 .badge-searched { background: var(--warn-soft); color: var(--text); border-color: transparent; }
 
 .price-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }

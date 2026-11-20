@@ -79,6 +79,38 @@ test("search: starts from the URL query and shows empty and error states", async
   expect(await screen.findByRole("alert")).toHaveTextContent("Too many requests");
 });
 
+test("search: a brand we have no price for leads to medicines with its salt; the exact strength is marked", async () => {
+  const sameSalt = (key: string) => ({
+    ...signedOut,
+    "GET /v1/search": {
+      did_you_mean: [],
+      same_salt_as: { brand: "Disprin", salts_label: "Aspirin 350mg", key },
+      groups: [
+        { key: "k75", salts_label: "Aspirin 75mg", matched: [offer({ id: "a", name: "Ecosprin 75" })] },
+        { key: "k350", salts_label: "Aspirin 350mg", matched: [offer({ id: "b", name: "Aspirin 350 Tablet" })] },
+      ],
+    },
+    "GET /v1/compare": comparison(),
+  });
+  mockApi(sameSalt("k350"));
+  nav.params = new URLSearchParams("q=displin");
+  const { unmount } = withAuth(<SearchPage />);
+  expect(await screen.findByText(/We don't have Disprin's price/)).toHaveTextContent(
+    "We don't have Disprin's price. These medicines have the same salt (Aspirin 350mg).",
+  );
+  const options = within(screen.getByRole("listbox")).getAllByRole("option");
+  expect(within(options[1]).getByText("Same strength")).toBeInTheDocument();
+  expect(within(options[0]).queryByText("Same strength")).not.toBeInTheDocument();
+  expect(screen.queryByText(/different strength/)).not.toBeInTheDocument();
+  unmount();
+
+  mockApi(sameSalt("k-none"));
+  withAuth(<SearchPage />);
+  expect(await screen.findByText(/different strength/)).toHaveTextContent(
+    "None of these is Aspirin 350mg; they have a different strength. Ask your pharmacist before switching.",
+  );
+});
+
 test("compare: shows the saving, badges and buy links; signed-in users can save", async () => {
   const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison(), "POST /v1/saved": { id: "s1" } });
   nav.params = new URLSearchParams("key=k1&searched=b1");

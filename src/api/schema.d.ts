@@ -157,6 +157,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        BrandAliasDto: {
+            brand: string;
+            /** @description Exact-substitution key of the brand itself; a group with this key is an exact match. */
+            key: string;
+            /** @description The brand's salts and strengths, e.g. "Aspirin 350mg". */
+            salts_label: string;
+        };
         BuyLinkDto: {
             kind: components["schemas"]["LinkKindDto"];
             label: string;
@@ -241,6 +248,7 @@ export interface components {
             /** @description When nothing matched: the closest medicine or salt names, best first. */
             did_you_mean: string[];
             groups: components["schemas"]["SearchGroupDto"][];
+            same_salt_as?: components["schemas"]["BrandAliasDto"] | null;
         };
         /** @enum {string} */
         Source: "jan_aushadhi" | "brand";
