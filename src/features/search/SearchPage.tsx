@@ -1,12 +1,17 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import type { BrandAlias, SearchGroup } from "@/api/client";
 import { CompareView } from "@/features/compare/CompareView";
+import { MedicineCard } from "@/features/compare/MedicineCard";
 import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
+import { BackdropArt } from "./BackdropArt";
+import { Divider, useSplit } from "./Divider";
 import { HeroArt } from "./HeroArt";
+import { HomeStats } from "./HomeStats";
+import { Loading } from "@/ui/Pulse";
 import { HOME_EVENT } from "./HomeLink";
 
 /** The page splits into list + prices once the query has this many characters. */
@@ -26,6 +31,22 @@ export function compareHref(key: string, searched?: string): string {
   return `/compare?${p.toString()}`;
 }
 
+/** Wide screens show search and prices side by side; phones use the slide-up sheet. */
+function useWide(): boolean {
+  const query = "(min-width: 761px)";
+  const [wide, setWide] = useState(true);
+  useEffect(() => {
+    const m = window.matchMedia?.(query);
+    if (!m) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read the screen size after mount
+    setWide(m.matches);
+    const on = () => setWide(m.matches);
+    m.addEventListener?.("change", on);
+    return () => m.removeEventListener?.("change", on);
+  }, []);
+  return wide;
+}
+
 function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value);
   useEffect(() => {
@@ -42,6 +63,8 @@ export function SearchPage() {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [sel, setSel] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const split2 = useSplit();
+  const wide = useWide();
 
   const typed = text.trim();
   const split = typed.length >= MIN;
@@ -89,6 +112,7 @@ export function SearchPage() {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       const step = e.key === "ArrowDown" ? 1 : -1;
+      setSheetOpen(false);
       setSel((i) => (i + step + groups.length) % groups.length);
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -97,19 +121,29 @@ export function SearchPage() {
   }
 
   const [detailKey, detailSearched] = pickedKey.split("\n");
-  const expanded = split && groups.length > 0;
+  /** Once a medicine is picked on a wide screen, its details sit at the bottom left and the right shows alternatives. */
+  const detailsLeft = split && sheetOpen && wide && !!picked?.matched[0];
+  const expanded = split && groups.length > 0 && !detailsLeft;
 
   return (
-    <div className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}`}>
+    <div
+      className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}${split && split2.folded ? " left-collapsed" : ""}`}
+      style={{ "--left-w": `${split2.width}px` } as CSSProperties}
+    >
+      <BackdropArt />
       <div className="search-left">
         <section className="search-hero">
-          <HeroArt />
-          <h1>Pay less for the same medicine</h1>
-          <p className="lede">
+          <div className="intro" style={{ "--i": 0 } as CSSProperties}>
+            <HeroArt />
+          </div>
+          <h1 className="intro" style={{ "--i": 1 } as CSSProperties}>
+            Pay less for the same medicine
+          </h1>
+          <p className="lede intro" style={{ "--i": 2 } as CSSProperties}>
             Same salts, strength and form, from Jan Aushadhi and other brands, with what you could save.
           </p>
         </section>
-        <form role="search" className="search-form" onSubmit={(e) => e.preventDefault()}>
+        <form role="search" className="search-form intro" style={{ "--i": 3 } as CSSProperties} onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="q" className="visually-hidden">
             Medicine name or salt
           </label>
@@ -140,17 +174,26 @@ export function SearchPage() {
           )}
         </form>
         {!split && (
-          <ul className="search-trust plain" aria-label="About the prices">
+          <ul className="search-trust plain intro" style={{ "--i": 4 } as CSSProperties} aria-label="About the prices">
             <li>Government Jan Aushadhi prices</li>
-            <li>3.5 lakh medicines</li>
             <li>No ads or tie-ups</li>
           </ul>
         )}
+        {!split && <HomeStats />}
         {split && (
           <ResultsList
             q={typed}
             state={state}
             sel={sel}
+            picked={sheetOpen}
+            detail={
+              detailsLeft && picked?.matched[0] ? (
+                <div className="picked-card" key={picked.key}>
+                  <MedicineCard offer={picked.matched[0]} matchKey={picked.key} headingLevel="h2" />
+                </div>
+              ) : undefined
+            }
+            onShowAll={() => setSheetOpen(false)}
             onPick={(i) => {
               setSel(i);
               setSheetOpen(true);
@@ -160,6 +203,12 @@ export function SearchPage() {
         )}
       </div>
 
+      {split && !split2.folded && <Divider width={split2.width} onResize={split2.resize} />}
+      {split && split2.folded && (
+        <button type="button" className="unfold" aria-label="Show search" onClick={split2.unfold}>
+          ›
+        </button>
+      )}
       <section className="search-right" aria-label="Prices">
         <div className="sheet-bar">
           <span className="sheet-grab" aria-hidden="true" />
@@ -168,7 +217,13 @@ export function SearchPage() {
           </button>
         </div>
         {split && detailKey && (
-          <CompareView key={pickedKey} matchKey={detailKey} searched={detailSearched || undefined} headingLevel="h2" />
+          <CompareView
+            key={pickedKey}
+            matchKey={detailKey}
+            searched={detailSearched || undefined}
+            headingLevel="h2"
+            hideCard={detailsLeft}
+          />
         )}
       </section>
     </div>
@@ -179,16 +234,19 @@ type ListProps = {
   q: string;
   state: State;
   sel: number;
+  /** A medicine was picked: show only it, with a way back to the rest. */
+  picked: boolean;
+  onShowAll: () => void;
+  /** Shown in place of the picked medicine's row (its details card). */
+  detail?: ReactNode;
   onPick: (i: number) => void;
   onSuggest: (name: string) => void;
 };
 
-function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
+function ResultsList({ q, state, sel, picked, onShowAll, detail, onPick, onSuggest }: ListProps) {
   if (state.kind === "loading") {
     return (
-      <p className="results-note" aria-busy="true">
-        Searching…
-      </p>
+      <Loading>Searching…</Loading>
     );
   }
   if (state.kind === "error") {
@@ -236,33 +294,41 @@ function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
           {state.groups.length} medicine{state.groups.length === 1 ? "" : "s"} match “{q}”
         </p>
       )}
-      <ul id="search-results" role="listbox" aria-label="Matching medicines" className="results plain">
-        {state.groups.map((g, i) => {
-          const first = g.matched[0];
-          const more = g.matched.length - 1;
-          return (
-            <li
-              key={g.key}
-              id={`result-${i}`}
-              role="option"
-              aria-selected={i === sel}
-              className="result card-in"
-              style={{ "--i": Math.min(i, 10) } as CSSProperties}
-              onClick={() => onPick(i)}
-            >
-              <span className="result-main">
-                <strong>{first?.name ?? g.salts_label}</strong>
-                {more > 0 && <span className="muted small"> +{more} more</span>}
-                <span className="result-salts">{g.salts_label}</span>
-                {alias?.key === g.key && <span className="badge badge-exact">Same strength</span>}
-              </span>
-              {first && (
-                <span className="result-price">{shortUnitPrice(first.unit_price_millipaise, first.pack_unit)}</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {detail ?? (
+        <ul id="search-results" role="listbox" aria-label="Matching medicines" className="results plain">
+          {state.groups.map((g, i) => {
+            if (picked && i !== sel) return null;
+            const first = g.matched[0];
+            const more = g.matched.length - 1;
+            return (
+              <li
+                key={g.key}
+                id={`result-${i}`}
+                role="option"
+                aria-selected={i === sel}
+                className="result card-in"
+                style={{ "--i": picked ? 0 : Math.min(i, 10) } as CSSProperties}
+                onClick={() => onPick(i)}
+              >
+                <span className="result-main">
+                  <strong>{first?.name ?? g.salts_label}</strong>
+                  {more > 0 && <span className="muted small"> +{more} more</span>}
+                  <span className="result-salts">{g.salts_label}</span>
+                  {alias?.key === g.key && <span className="badge badge-exact">Same strength</span>}
+                </span>
+                {first && (
+                  <span className="result-price">{shortUnitPrice(first.unit_price_millipaise, first.pack_unit)}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {picked && state.groups.length > 1 && (
+        <button type="button" className="show-all card-in" onClick={onShowAll}>
+          Show all {state.groups.length} medicines
+        </button>
+      )}
     </>
   );
 }

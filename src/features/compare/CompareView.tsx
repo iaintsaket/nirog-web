@@ -4,15 +4,21 @@ import { useEffect, useState, type CSSProperties } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { SourceBadge } from "@/features/search/SourceBadge";
-import { packLabel, percent, rupees, unitPriceLabel } from "@/lib/format";
+import { formLabel, packLabel, percent, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
 import { compareMatch } from "@/services/catalog";
+import { CloseMatches } from "./CloseMatches";
+import { CompareDialog } from "./CompareDialog";
 import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
+import { Loading } from "@/ui/Pulse";
 
 type State =
   | { kind: "loading" }
   | { kind: "done"; data: Comparison }
   | { kind: "error"; message: string };
+
+/** At most this many alternatives can be added to one comparison. */
+const MAX_COMPARE = 3;
 
 /** Place in the entrance line-up: cards land one after another. */
 const order = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -32,6 +38,10 @@ type QuickFilter = {
   note: (o: Offer) => string;
   keep: (row: Row, c: Comparison, picked: Offer) => boolean;
   best?: boolean;
+  /** Also offered as a chip beside the Alternatives heading, with this label. */
+  chip?: string;
+  /** false: chip only, no summary box. */
+  box?: boolean;
 };
 
 const QUICK_FILTERS: QuickFilter[] = [
@@ -59,15 +69,36 @@ const QUICK_FILTERS: QuickFilter[] = [
     pick: (c) => c.offers.find((o) => o.offer.source === "jan_aushadhi")?.offer,
     note: () => "At any Kendra",
     keep: (r) => r.offer.source === "jan_aushadhi",
+    chip: "Jan Aushadhi",
+  },
+  {
+    id: "brand",
+    label: "Brands",
+    shows: "brands",
+    pick: (c) => c.offers.find((o) => o.offer.source === "brand")?.offer,
+    note: (o) => o.name,
+    keep: (r) => r.offer.source === "brand",
+    chip: "Brands",
+    box: false,
   },
 ];
 
-type Props = { matchKey: string; searched?: string; headingLevel?: "h1" | "h2" };
+type Props = {
+  matchKey: string;
+  searched?: string;
+  headingLevel?: "h1" | "h2";
+  /** The page shows the medicine's details elsewhere (the search page's left panel). */
+  hideCard?: boolean;
+};
 
 /** Every exact substitute for one match key, cheapest first, with the saving and buy links. */
-export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) {
+export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard = false }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [filter, setFilter] = useState<string | null>(null);
+  const [dearestFirst, setDearestFirst] = useState(false);
+  /** Alternatives added to compare (offer ids), and the ones shown in the open comparison. */
+  const [picks, setPicks] = useState<string[]>([]);
+  const [open, setOpen] = useState<string[] | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -75,6 +106,8 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading state for a new key
     setState({ kind: "loading" });
     setFilter(null);
+    setPicks([]);
+    setOpen(null);
     compareMatch(matchKey, searched).then((r) => {
       if (!live) return;
       setState(r.ok ? { kind: "done", data: r.data } : { kind: "error", message: r.message });
@@ -84,7 +117,7 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
     };
   }, [matchKey, searched]);
 
-  if (state.kind === "loading") return <p aria-busy="true">Finding substitutes…</p>;
+  if (state.kind === "loading") return <Loading>Finding cheaper substitutes…</Loading>;
   if (state.kind === "error") {
     return (
       <p role="alert" className="notice notice-error">
@@ -96,23 +129,53 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
   const c = state.data;
   const cheapest = c.offers[0]?.offer;
   const base = c.searched_index != null ? c.offers[c.searched_index]?.offer : undefined;
-  const boxes = QUICK_FILTERS.flatMap((f) => {
+  const available = QUICK_FILTERS.flatMap((f) => {
     const offer = f.pick(c);
     return offer ? [{ f, offer }] : [];
   });
-  const active = boxes.find((b) => b.f.id === filter);
-  const rows = c.offers
+  const boxes = available.filter((b) => b.f.box !== false);
+  const chips = available.filter((b) => b.f.chip);
+  const active = available.find((b) => b.f.id === filter);
+  const kept = c.offers
     .map(({ offer, links }, index) => ({ offer, links, index }))
     .filter((r) => !active || active.f.keep(r, c, active.offer));
+  const rows = dearestFirst ? [...kept].reverse() : kept;
   const maxUnit = Math.max(...c.offers.map((o) => o.offer.unit_price_millipaise), 1);
   const picked = base ?? cheapest;
   const Sub = headingLevel === "h1" ? "h2" : "h3";
 
   return (
     <div className="stack-lg compare">
-      {picked && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
+      {picked && !hideCard && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
       <section className="stack">
-        <Sub className="h3">Same medicine, other prices</Sub>
+        <div className="alt-head">
+          <Sub className="h2">Alternatives</Sub>
+          <div className="alt-tools">
+            <div className="chips" role="group" aria-label="Show">
+              <button type="button" className="chip-toggle" aria-pressed={filter === null} onClick={() => setFilter(null)}>
+                All
+              </button>
+              {chips.map(({ f }) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="chip-toggle"
+                  aria-pressed={filter === f.id}
+                  onClick={() => setFilter((cur) => (cur === f.id ? null : f.id))}
+                >
+                  {f.chip}
+                </button>
+              ))}
+            </div>
+            <label className="sort">
+              <span className="visually-hidden">Sort</span>
+              <select aria-label="Sort" value={dearestFirst ? "desc" : "asc"} onChange={(e) => setDearestFirst(e.target.value === "desc")}>
+                <option value="asc">Price: low to high</option>
+                <option value="desc">Price: high to low</option>
+              </select>
+            </label>
+          </div>
+        </div>
         <div className="stats" role="group" aria-label="Quick filters">
           {boxes.map(({ f, offer }, n) => (
             <button
@@ -163,12 +226,30 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
           return (
             <li
               key={offer.id}
-              className={`rung card-in${you ? " rung-you" : i === 0 ? " rung-best" : ""}`}
+              className={`rung card-in${you ? " rung-you" : i === 0 ? " rung-best" : ""}${picked && offer.id !== picked.id ? " rung-clickable" : ""}`}
               style={order(5 + Math.min(n, 10))}
+              onClick={(e) => {
+                // The whole card opens the comparison; its links and buttons keep their own jobs.
+                if (!picked || offer.id === picked.id || (e.target as HTMLElement).closest("a, button")) return;
+                setOpen([offer.id]);
+              }}
             >
               <div className="rung-top">
-                <strong className="rung-title">{offer.name}</strong>
-                <span className="rung-price">{unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}</span>
+                {picked && offer.id !== picked.id ? (
+                  <button
+                    type="button"
+                    className="rung-open"
+                    aria-label={`Compare ${offer.name} with ${picked.name}`}
+                    onClick={() => setOpen([offer.id])}
+                  >
+                    <strong className="rung-title">{offer.name}</strong>
+                  </button>
+                ) : (
+                  <strong className="rung-title">{offer.name}</strong>
+                )}
+                <span className="rung-price" title={unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}>
+                  {shortUnitPrice(offer.unit_price_millipaise, offer.pack_unit)}
+                </span>
               </div>
               <div className="rung-tags">
                 <SourceBadge source={offer.source} />
@@ -189,6 +270,20 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
                   style={{ width: `${Math.max(2, (offer.unit_price_millipaise / maxUnit) * 100)}%` }}
                 />
               </div>
+              {picked && offer.id !== picked.id && (
+                <button
+                  type="button"
+                  className="add-compare"
+                  aria-pressed={picks.includes(offer.id)}
+                  aria-label={`Add ${offer.name} to compare`}
+                  disabled={!picks.includes(offer.id) && picks.length >= MAX_COMPARE}
+                  onClick={() =>
+                    setPicks((p) => (p.includes(offer.id) ? p.filter((x) => x !== offer.id) : [...p, offer.id]))
+                  }
+                >
+                  {picks.includes(offer.id) ? "✓ Added" : "+ Compare"}
+                </button>
+              )}
               {links.length > 0 && (
                 <div className="rung-links">
                   {links.map((l) => (
@@ -202,6 +297,30 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
           );
         })}
       </ol>
+
+      {picks.length > 0 && (
+        <div className="compare-tray card-in" role="region" aria-label="Compare tray">
+          <span className="small">
+            {picks.length} of {MAX_COMPARE} added
+          </span>
+          <button type="button" className="button" onClick={() => setOpen(picks)}>
+            Compare {picks.length + 1} medicines
+          </button>
+          <button type="button" className="link-button" onClick={() => setPicks([])}>
+            Clear
+          </button>
+        </div>
+      )}
+      {open && picked && (
+        <CompareDialog
+          mine={picked}
+          others={c.offers.filter((o) => open.includes(o.offer.id))}
+          form={formLabel(c.key)}
+          onClose={() => setOpen(null)}
+        />
+      )}
+
+      {c.saving_per_pack_paise <= 0 && <CloseMatches matchKey={c.key} />}
 
       <p className="small muted disclaimer">
         Prices are maximum retail prices from public lists and may differ at the shop. Nirog compares

@@ -1,4 +1,5 @@
 :root {
+  --ease: cubic-bezier(.2, .8, .2, 1);
   --bg: #f7f8f6;
   --surface: #ffffff;
   --text: #17201b;
@@ -15,7 +16,7 @@
   --focus: #2563eb;
   --radius: 12px;
   --shadow: 0 1px 2px rgb(16 24 20 / 6%), 0 2px 8px rgb(16 24 20 / 4%);
-  --glow-a: #d4f1e6;
+  --glow-a: #b9e6d2;
   --glow-b: #e3f0ff;
   --art-disc: #fbe0b4;
   color-scheme: light;
@@ -38,7 +39,7 @@
     --danger-soft: #3a1a17;
     --focus: #7aa2ff;
     --shadow: none;
-    --glow-a: #123328;
+    --glow-a: #17473a;
     --glow-b: #14233a;
     --art-disc: #3a2e1c;
     color-scheme: dark;
@@ -160,8 +161,10 @@ p { margin: 0; }
 
 /* Split search: one centred box that slides left once two letters are typed;
    prices slide in on the right. On phones the prices open as a bottom sheet. */
-.container.main:has(.search-shell) { max-width: 1240px; }
-.search-shell { --ease: cubic-bezier(.2, .8, .2, 1); display: flex; align-items: flex-start; }
+.container.main:has(.search-shell),
+body:has(.search-shell) .site-header .container,
+body:has(.search-shell) .site-footer .container { max-width: 1240px; }
+.search-shell { display: flex; align-items: flex-start; }
 .search-left { flex: 0 0 100%; min-width: 0; transition: flex-basis .55s var(--ease); }
 .search-left > * { max-width: 640px; margin-left: auto; margin-right: auto; transition: max-width .55s var(--ease); }
 .search-hero { text-align: center; padding-top: 5vh; margin-bottom: 24px; max-height: 460px; overflow: hidden;
@@ -195,13 +198,13 @@ p { margin: 0; }
   visibility: hidden; transition: opacity .45s .2s, transform .55s .15s var(--ease), visibility 0s .55s; }
 .sheet-bar { display: none; }
 
-.is-split .search-left { flex-basis: 380px; }
+.is-split .search-left { flex-basis: var(--left-w, 380px); }
 .is-split .search-left > * { max-width: 100%; }
 .is-split .search-hero { max-height: 0; opacity: 0; padding-top: 0; margin-bottom: 0; }
 .is-split .search-form input { border-width: 1px; }
 .is-split .search-right { opacity: 1; transform: none; pointer-events: auto; visibility: visible; overflow: visible;
   transition: opacity .45s .2s, transform .55s .15s var(--ease), visibility 0s;
-  position: sticky; top: 16px; margin-left: 28px; padding-left: 28px; border-left: 1px solid var(--border); }
+  position: sticky; top: 16px; padding-left: 8px; }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0 0; }
 .filter-note { color: var(--muted); }
@@ -216,10 +219,13 @@ p { margin: 0; }
 .stat-best .stat-price { color: var(--accent-strong); }
 .stat-name { font-size: .85rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Each substitute is its own card: name and unit price on top, tags and pack below, a slim bar, small links. */
-.ladder { display: grid; gap: 10px; }
-.rung { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px;
-  background: var(--surface); }
+/* Substitutes as a grid of small upright cards (3 across in the prices panel, 1-2 on phones):
+   name, price per unit, tags, maker and pack, a slim bar, then links pinned to the bottom. */
+.ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
+.rung { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: 14px;
+  background: var(--surface); transition: border-color .2s, box-shadow .25s var(--ease), transform .2s var(--ease); }
+.ladder .rung:hover { border-color: var(--accent); transform: translateY(-2px);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 26px 4px color-mix(in srgb, var(--accent) 30%, transparent); }
 .rung-best { border-color: var(--accent); position: relative; overflow: hidden;
   background: linear-gradient(135deg, var(--accent-soft), var(--surface) 70%); box-shadow: 0 6px 24px -12px var(--accent); }
 /* One soft shine across the best card after it lands. */
@@ -228,20 +234,20 @@ p { margin: 0; }
   transform: translateX(-100%); animation: shine 1.2s .6s var(--ease) both; }
 @keyframes shine { to { transform: translateX(100%); } }
 .rung-you { border-color: #d9a441; background: var(--warn-soft); }
-.rung-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.rung-top { display: flex; flex-direction: column; gap: 4px; }
 .rung-title { min-width: 0; overflow-wrap: anywhere; }
-.rung-price { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+.rung-price { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.15rem; }
 .rung-best .rung-price { color: var(--accent-strong); }
 .rung-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.rung-meta { margin-left: 2px; }
+.rung-meta { flex-basis: 100%; }
 .rung-bar { height: 4px; }
 .bar { display: block; height: 4px; border-radius: 2px; background: var(--border); transform-origin: left;
   animation: bar-grow .7s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms + .25s); }
 .bar-good { background: var(--accent); }
 .bar-you { background: #b7791f; }
 @keyframes bar-grow { from { transform: scaleX(0); } }
-.rung-links { display: flex; flex-wrap: wrap; gap: 6px; }
-.link-chip { font-size: .8rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
+.rung-links { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 4px; }
+.link-chip { font-size: .72rem; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
   color: var(--text); text-decoration: none; background: var(--bg); }
 .link-chip:hover { border-color: var(--accent); color: var(--accent-strong); }
 
@@ -271,7 +277,7 @@ p { margin: 0; }
 /* Home look: soft mint and blue glow behind the search, family illustration, trust strip. */
 body:has(.search-shell) {
   background:
-    radial-gradient(640px 400px at 85% 8%, var(--glow-a), transparent 70%),
+    radial-gradient(760px 480px at 85% 8%, var(--glow-a), transparent 72%),
     radial-gradient(560px 380px at 8% 92%, var(--glow-b), transparent 70%),
     var(--bg);
   background-attachment: fixed;
@@ -284,7 +290,7 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 @media (max-width: 560px) { .search-trust { flex-direction: column; align-items: center; } }
 .search-trust li::before { content: "✓"; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
   background: var(--accent-soft); color: var(--accent-strong); font-size: .7rem; font-weight: 700; }
-.is-split .search-right { background: color-mix(in srgb, var(--bg) 70%, transparent); }
+.is-split .search-right { background: color-mix(in srgb, var(--bg) 35%, transparent); }
 @media (max-width: 760px) { .hero-art { width: 140px; height: 117px; } }
 
 /* Picked medicine: details first, the price comparison right below. */
@@ -296,3 +302,156 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 .med-fact-wide { grid-column: 1 / -1; }
 .med-fact dt { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .med-fact dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* Live figures on the empty search screen. */
+.home-stats { margin-top: 28px; }
+.home-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.home-stat { display: flex; flex-direction: column; justify-content: space-between; align-items: center; border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 12px; background: var(--surface); text-align: center;
+  transition: border-color .15s, transform .15s, box-shadow .15s; }
+.home-stat:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow); }
+.home-stat dt { font-size: .75rem; color: var(--muted); }
+.home-stat dd { margin: 4px 0 0; font-size: 1.35rem; font-weight: 700; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.home-stats-date { text-align: center; margin-top: 10px; }
+@media (max-width: 640px) { .home-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Loader: the Nirog mark beating, rings rippling out. */
+.pulse { position: relative; display: inline-grid; place-items: center; width: var(--pulse); height: var(--pulse); flex: none; }
+.pulse-sm { --pulse: 18px; } .pulse-md { --pulse: 28px; } .pulse-lg { --pulse: 56px; }
+.pulse-mark { position: relative; display: grid; place-items: center; width: 100%; height: 100%; border-radius: 28%;
+  background: var(--accent); color: #fff; font-weight: 800; font-size: calc(var(--pulse) * .6); line-height: 1;
+  animation: heartbeat 1.1s ease-in-out infinite; }
+.pulse-ring { position: absolute; inset: 0; border-radius: 32%; border: 2px solid var(--accent); opacity: 0;
+  animation: ripple 1.1s ease-out infinite; }
+.pulse-ring-late { animation-delay: .25s; }
+@keyframes heartbeat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.14); } 30% { transform: scale(.98); } 45% { transform: scale(1.08); } 60% { transform: scale(1); } }
+@keyframes ripple { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(2.3); opacity: 0; } }
+.loading-row { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .9rem; margin: 14px 4px; }
+
+/* First load: the loader beats in the centre, then flies into the header logo (src/ui/Splash.tsx).
+   The CSS fade is only a fallback for when the script never runs. */
+.splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; pointer-events: none;
+  animation: splash-out .4s 4s both; }
+.splash-bg { position: absolute; inset: 0; background: var(--bg); }
+@keyframes splash-out { to { opacity: 0; visibility: hidden; } }
+.splash-flying .pulse-ring { display: none; }
+.splash-flying .pulse-mark { animation: none; }
+html.splashing .brand .pulse { visibility: hidden; }
+/* Header logo: beats like the loader, with gentler rings. */
+.brand .pulse-ring { border-width: 1.5px; }
+.intro { animation: card-in .55s var(--ease) both; animation-delay: calc(1s + var(--i, 0) * 90ms); }
+
+/* Placeholders while figures load. */
+.skeleton { min-height: 76px; background: linear-gradient(100deg, var(--surface) 30%, var(--accent-soft) 50%, var(--surface) 70%);
+  background-size: 300% 100%; animation: shimmer 1.3s linear infinite; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { display: none; }
+  .intro, .skeleton, .pulse-mark, .pulse-ring { animation: none; }
+  .pulse-ring { display: none; }
+}
+
+/* After picking a medicine, the other matches fold away behind this. */
+.show-all { margin-top: 10px; width: 100%; font: inherit; font-size: .9rem; padding: 10px 14px; border-radius: 12px; cursor: pointer;
+  border: 1px dashed var(--border); background: transparent; color: var(--accent-strong); transition: border-color .15s, background .15s; }
+.show-all:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+/* Home decorations: white paper cutouts with a soft lifted shadow, drifting slowly. */
+.backdrop-art { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.search-left, .search-right { position: relative; z-index: 1; }
+.cutout { position: absolute; filter: drop-shadow(0 10px 18px rgb(20 60 40 / 14%)) drop-shadow(0 2px 3px rgb(20 60 40 / 10%)); }
+.cutout-steth { right: 5vw; top: 20vh; width: clamp(150px, 15vw, 230px); }
+.cutout-strip { left: -40px; bottom: 9vh; width: clamp(200px, 20vw, 300px); }
+.cutout-steth > *, .cutout-strip > * { transform-box: view-box; }
+.cutout-steth { transform: rotate(12deg); }
+.cutout-strip { transform: rotate(-28deg); }
+.backdrop-art .cutout-steth { animation: card-in .7s var(--ease) both, drift-a 7s ease-in-out 2s infinite; animation-delay: 1.2s, 2s; }
+.backdrop-art .cutout-strip { animation: card-in .7s var(--ease) both, drift-b 8s ease-in-out 2s infinite; animation-delay: 1.4s, 2.2s; }
+@keyframes drift-a { 0%, 100% { transform: rotate(12deg) translateY(0); } 50% { transform: rotate(9deg) translateY(-10px); } }
+@keyframes drift-b { 0%, 100% { transform: rotate(-28deg) translateY(0); } 50% { transform: rotate(-25deg) translateY(-8px); } }
+@media (max-width: 1100px) { .backdrop-art { display: none; } }
+@media (prefers-reduced-motion: reduce) { .backdrop-art .cutout-steth, .backdrop-art .cutout-strip { animation: none; } }
+
+/* Beside the Alternatives heading: filter chips and a price sort. */
+.alt-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.alt-head .h2 { margin: 0; }
+.alt-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chips { display: inline-flex; gap: 4px; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+.chip-toggle { font: inherit; font-size: .82rem; padding: 5px 12px; border: 0; border-radius: 999px; background: transparent;
+  color: var(--muted); cursor: pointer; transition: background .2s, color .2s; }
+.chip-toggle:hover { color: var(--accent-strong); }
+.chip-toggle[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.sort select { font: inherit; font-size: .82rem; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); cursor: pointer; }
+.sort select:hover { border-color: var(--accent); }
+
+/* The selected medicine stands out with a faint molecule pattern behind it. */
+:root { --molecule: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22132%22 height=%22114%22 viewBox=%220 0 132 114%22%3E%3Cg fill=%22none%22 stroke=%22%23b7791f%22 stroke-opacity=%22.07%22 stroke-width=%221.3%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M30 14 L48 24 L48 46 L30 56 L12 46 L12 24 Z%22/%3E%3Cpath d=%22M36 22 L36 22 M17 27 L17 43 M43 27 L43 43%22/%3E%3Cpath d=%22M48 46 L70 58 L70 82 L92 94%22/%3E%3Cpath d=%22M92 94 L110 84 L128 94 L128 114%22/%3E%3Cpath d=%22M70 58 L92 46 L92 24%22/%3E%3Cpath d=%22M30 56 L30 80 L12 92%22/%3E%3C/g%3E%3Cg fill=%22%23b7791f%22 fill-opacity=%22.09%22%3E%3Ccircle cx=%2292%22 cy=%2224%22 r=%223.5%22/%3E%3Ccircle cx=%2212%22 cy=%2292%22 r=%223.5%22/%3E%3Ccircle cx=%2270%22 cy=%2282%22 r=%222.5%22/%3E%3Ccircle cx=%22110%22 cy=%2284%22 r=%222.5%22/%3E%3C/g%3E%3C/svg%3E"); }
+.result[aria-selected="true"], .med-card, .rung-you {
+  border-color: #e0b25c;
+  background-image: var(--molecule), linear-gradient(135deg, var(--warn-soft), var(--surface) 80%);
+  background-size: 132px 114px, auto; background-position: right -10px top -14px, 0 0; }
+.result[aria-selected="true"] { box-shadow: 0 0 0 1px #e0b25c; }
+
+/* Click an alternative's name, or add up to 3 to the tray, to compare side by side with yours. */
+.rung-open { all: unset; cursor: pointer; }
+.rung-open:hover .rung-title, .rung-open:focus-visible .rung-title { color: var(--accent-strong); text-decoration: underline; }
+.rung-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.add-compare { align-self: flex-start; font: inherit; font-size: .78rem; padding: 3px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px dashed var(--accent); background: transparent; color: var(--accent-strong); }
+.add-compare[aria-pressed="true"] { background: var(--accent); color: #fff; border-style: solid; }
+.add-compare:disabled { opacity: .45; cursor: not-allowed; }
+.compare-tray { position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--accent);
+  box-shadow: 0 8px 28px -10px color-mix(in srgb, var(--accent) 50%, transparent); width: fit-content; margin: 0 auto; }
+.dialog-backdrop { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px;
+  background: rgb(10 20 15 / 45%); backdrop-filter: blur(3px); }
+.dialog { width: min(920px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--surface);
+  border-radius: 16px; padding: 18px 20px; box-shadow: 0 24px 60px -20px rgb(0 0 0 / 40%); display: grid; gap: 14px; }
+.dialog-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dialog-head .h3 { margin: 0; }
+.dialog-close { font: inherit; border: 0; background: var(--bg); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; flex: none; }
+.dialog-scroll { overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.compare-table th, .compare-table td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.compare-table thead th { font-weight: 700; }
+.compare-table tbody th { color: var(--muted); font-weight: 500; white-space: nowrap; width: 1%; padding-right: 18px; }
+.compare-table .col-mine { background: var(--warn-soft); }
+.compare-table .same { color: var(--accent-strong); font-weight: 600; white-space: nowrap; }
+.compare-savings li { padding: 8px 12px; border-radius: 10px; }
+.save-yes { background: var(--accent-soft); }
+.save-no { background: var(--bg); color: var(--muted); }
+
+/* Draggable divider between search and prices; dragging far left folds the search away. */
+.divider { display: none; }
+.is-split .divider { display: flex; justify-content: center; align-self: stretch; flex: 0 0 28px; margin-left: 12px; cursor: col-resize;
+  position: relative; z-index: 2; touch-action: none; }
+.divider::before { content: ""; width: 1px; height: 100%; background: var(--border); transition: background .2s, width .2s; }
+.divider-grip { position: sticky; top: 40vh; margin-left: -1px; width: 8px; height: 44px; border-radius: 999px; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); position: absolute; top: 120px; left: 50%; }
+.divider:hover::before, .divider:focus-visible::before, .divider.is-dragging::before { background: var(--accent); width: 2px; }
+.divider:hover .divider-grip, .divider.is-dragging .divider-grip { border-color: var(--accent); }
+.divider:focus-visible { outline: none; }
+.search-shell:has(.divider.is-dragging) .search-left { transition: none; user-select: none; }
+.left-collapsed .search-left { flex-basis: 0 !important; opacity: 0; overflow: hidden; pointer-events: none; }
+.unfold { position: sticky; top: 40vh; align-self: flex-start; flex: none; margin-right: 12px; width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--accent); background: var(--surface); color: var(--accent-strong); font-size: 1.3rem; line-height: 1; cursor: pointer;
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 20px 2px color-mix(in srgb, var(--accent) 30%, transparent); z-index: 3; }
+.unfold:hover { background: var(--accent); color: #fff; }
+@media (max-width: 760px) { .is-split .divider, .unfold { display: none; } }
+
+/* A picked medicine's details glide over to the bottom of the left panel and stay in view. */
+.picked-card { margin-top: 4px; animation: glide-left .6s var(--ease) both; }
+.picked-card .med-fact dd { font-size: .95rem; overflow-wrap: break-word; }
+.picked-card .med-facts { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.picked-card .med-card { box-shadow: 0 14px 34px -18px rgb(120 80 10 / 35%); }
+@keyframes glide-left { from { opacity: 0; transform: translateX(60px) scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .picked-card { animation: none; } }
+.rung-clickable { cursor: pointer; }
+
+/* Close matches: nearby formulas, clearly not substitutes. */
+.close-matches { margin-top: 8px; }
+.notice-warn { background: var(--warn-soft); border-radius: 10px; padding: 10px 14px; }
+.badge-diff { background: var(--warn-soft); color: #7a4b00; border-color: #e0b25c; }
+.close-link { align-self: flex-start; margin-top: auto; }

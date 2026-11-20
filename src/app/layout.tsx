@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AuthMenu } from "@/features/auth/AuthMenu";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { HomeLink } from "@/features/search/HomeLink";
+import { Splash } from "@/ui/Splash";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +19,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-IN">
       <body>
+        {/* First load only: the layout is not re-rendered on navigation. */}
+        <Splash />
         <AuthProvider>
           <header className="site-header">
             <div className="container header-row">
