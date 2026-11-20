@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import type { BrandAlias, SearchGroup } from "@/api/client";
 import { CompareView } from "@/features/compare/CompareView";
 import { MedicineCard } from "@/features/compare/MedicineCard";
@@ -123,7 +123,7 @@ export function SearchPage() {
   const [detailKey, detailSearched] = pickedKey.split("\n");
   /** Once a medicine is picked on a wide screen, its details sit at the bottom left and the right shows alternatives. */
   const detailsLeft = split && sheetOpen && wide && !!picked?.matched[0];
-  const expanded = split && groups.length > 0;
+  const expanded = split && groups.length > 0 && !detailsLeft;
 
   return (
     <div
@@ -186,6 +186,13 @@ export function SearchPage() {
             state={state}
             sel={sel}
             picked={sheetOpen}
+            detail={
+              detailsLeft && picked?.matched[0] ? (
+                <div className="picked-card" key={picked.key}>
+                  <MedicineCard offer={picked.matched[0]} matchKey={picked.key} headingLevel="h2" />
+                </div>
+              ) : undefined
+            }
             onShowAll={() => setSheetOpen(false)}
             onPick={(i) => {
               setSel(i);
@@ -193,11 +200,6 @@ export function SearchPage() {
             }}
             onSuggest={setText}
           />
-        )}
-        {detailsLeft && picked?.matched[0] && (
-          <div className="picked-card" key={picked.key}>
-            <MedicineCard offer={picked.matched[0]} matchKey={picked.key} headingLevel="h2" />
-          </div>
         )}
       </div>
 
@@ -235,11 +237,13 @@ type ListProps = {
   /** A medicine was picked: show only it, with a way back to the rest. */
   picked: boolean;
   onShowAll: () => void;
+  /** Shown in place of the picked medicine's row (its details card). */
+  detail?: ReactNode;
   onPick: (i: number) => void;
   onSuggest: (name: string) => void;
 };
 
-function ResultsList({ q, state, sel, picked, onShowAll, onPick, onSuggest }: ListProps) {
+function ResultsList({ q, state, sel, picked, onShowAll, detail, onPick, onSuggest }: ListProps) {
   if (state.kind === "loading") {
     return (
       <Loading>Searching…</Loading>
@@ -290,34 +294,36 @@ function ResultsList({ q, state, sel, picked, onShowAll, onPick, onSuggest }: Li
           {state.groups.length} medicine{state.groups.length === 1 ? "" : "s"} match “{q}”
         </p>
       )}
-      <ul id="search-results" role="listbox" aria-label="Matching medicines" className="results plain">
-        {state.groups.map((g, i) => {
-          if (picked && i !== sel) return null;
-          const first = g.matched[0];
-          const more = g.matched.length - 1;
-          return (
-            <li
-              key={g.key}
-              id={`result-${i}`}
-              role="option"
-              aria-selected={i === sel}
-              className="result card-in"
-              style={{ "--i": picked ? 0 : Math.min(i, 10) } as CSSProperties}
-              onClick={() => onPick(i)}
-            >
-              <span className="result-main">
-                <strong>{first?.name ?? g.salts_label}</strong>
-                {more > 0 && <span className="muted small"> +{more} more</span>}
-                <span className="result-salts">{g.salts_label}</span>
-                {alias?.key === g.key && <span className="badge badge-exact">Same strength</span>}
-              </span>
-              {first && (
-                <span className="result-price">{shortUnitPrice(first.unit_price_millipaise, first.pack_unit)}</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {detail ?? (
+        <ul id="search-results" role="listbox" aria-label="Matching medicines" className="results plain">
+          {state.groups.map((g, i) => {
+            if (picked && i !== sel) return null;
+            const first = g.matched[0];
+            const more = g.matched.length - 1;
+            return (
+              <li
+                key={g.key}
+                id={`result-${i}`}
+                role="option"
+                aria-selected={i === sel}
+                className="result card-in"
+                style={{ "--i": picked ? 0 : Math.min(i, 10) } as CSSProperties}
+                onClick={() => onPick(i)}
+              >
+                <span className="result-main">
+                  <strong>{first?.name ?? g.salts_label}</strong>
+                  {more > 0 && <span className="muted small"> +{more} more</span>}
+                  <span className="result-salts">{g.salts_label}</span>
+                  {alias?.key === g.key && <span className="badge badge-exact">Same strength</span>}
+                </span>
+                {first && (
+                  <span className="result-price">{shortUnitPrice(first.unit_price_millipaise, first.pack_unit)}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
       {picked && state.groups.length > 1 && (
         <button type="button" className="show-all card-in" onClick={onShowAll}>
           Show all {state.groups.length} medicines

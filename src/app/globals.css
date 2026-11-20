@@ -442,8 +442,9 @@ html.splashing .brand .pulse { visibility: hidden; }
 @media (max-width: 760px) { .is-split .divider, .unfold { display: none; } }
 
 /* A picked medicine's details glide over to the bottom of the left panel and stay in view. */
-.picked-card { position: sticky; bottom: 16px; margin-top: 18px; animation: glide-left .6s var(--ease) both; }
-.picked-card .med-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.picked-card { margin-top: 4px; animation: glide-left .6s var(--ease) both; }
+.picked-card .med-fact dd { font-size: .95rem; overflow-wrap: break-word; }
+.picked-card .med-facts { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .picked-card .med-card { box-shadow: 0 14px 34px -18px rgb(120 80 10 / 35%); }
 @keyframes glide-left { from { opacity: 0; transform: translateX(60px) scale(.96); } }
 @media (prefers-reduced-motion: reduce) { .picked-card { animation: none; } }

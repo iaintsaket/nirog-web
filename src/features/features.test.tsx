@@ -88,13 +88,13 @@ test("search: picking a medicine hides the other matches until asked", async () 
   expect(await within(prices).findByRole("region", { name: "Lipitor 10 Tablet" })).toBeInTheDocument();
 
   await userEvent.click(screen.getByText("Dolo 650 Tablet"));
-  expect(await names()).toEqual(["Dolo 650 Tablet"]);
-  // Picked: its details move to the left, and the prices panel shows only the alternatives.
-  const details = screen.getByRole("region", { name: "Dolo 650 Tablet" });
+  // Picked: the other matches fold away and the details card takes the medicine's place on the left;
+  // the prices panel shows only the alternatives.
+  const details = await screen.findByRole("region", { name: "Dolo 650 Tablet" });
+  expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   expect(prices).not.toContainElement(details);
   expect(within(details).getByText("Paracetamol 650mg")).toBeInTheDocument();
   await waitFor(() => expect(within(prices).queryByRole("region", { name: "Lipitor 10 Tablet" })).not.toBeInTheDocument());
-  expect(within(screen.getByRole("listbox")).getByRole("option")).toHaveAttribute("aria-selected", "true");
 
   await userEvent.click(screen.getByRole("button", { name: "Show all 2 medicines" }));
   expect(await names()).toEqual(["Dolo 500 Tablet", "Dolo 650 Tablet"]);
