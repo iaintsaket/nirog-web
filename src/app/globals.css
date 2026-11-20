@@ -252,3 +252,13 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
   background: var(--accent-soft); color: var(--accent-strong); font-size: .7rem; font-weight: 700; }
 .is-split .search-right { background: color-mix(in srgb, var(--bg) 70%, transparent); }
 @media (max-width: 760px) { .hero-art { width: 140px; height: 117px; } }
+
+/* Picked medicine: details first, the price comparison right below. */
+.med-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--surface); }
+.med-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.med-card-head .h2 { margin: 0; }
+.med-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 16px; margin: 10px 0 0; }
+.med-fact { min-width: 0; }
+.med-fact-wide { grid-column: 1 / -1; }
+.med-fact dt { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.med-fact dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }

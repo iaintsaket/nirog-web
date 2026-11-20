@@ -112,13 +112,26 @@ test("search: a brand we have no price for leads to medicines with its salt; the
 });
 
 test("compare: shows the saving, badges and buy links; signed-in users can save", async () => {
-  const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison(), "POST /v1/saved": { id: "s1" } });
-  nav.params = new URLSearchParams("key=k1&searched=b1");
+  const key = "atorvastatin:10000000|tablet|standard|unit";
+  const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison({ key }), "POST /v1/saved": { id: "s1" } });
+  nav.params = new URLSearchParams(`key=${encodeURIComponent(key)}&searched=b1`);
   withAuth(<ComparePage />);
 
   expect(await screen.findByRole("status")).toHaveTextContent(
     "Save up to ₹190.92 per pack (95%) compared with Lipitor 10 Tablet by choosing Atorvastatin Tablets IP 10mg",
   );
+  const card = screen.getByRole("region", { name: "Lipitor 10 Tablet" });
+  const facts = Object.fromEntries(
+    within(card).getAllByRole("term").map((dt) => [dt.textContent, dt.nextElementSibling?.textContent]),
+  );
+  expect(facts).toEqual({
+    Composition: "Atorvastatin 10mg",
+    Form: "Tablet",
+    Pack: "10 tablets/capsules",
+    Price: "₹200.00 per pack",
+    "Per unit": "₹20.00 per tablet/capsule",
+    Maker: "Pfizer",
+  });
   const list = screen.getByRole("list", { name: "Substitutes, cheapest first" });
   expect(within(list).getByText("Cheapest")).toBeInTheDocument();
   expect(within(list).getByText("You searched")).toBeInTheDocument();
@@ -127,7 +140,7 @@ test("compare: shows the saving, badges and buy links; signed-in users can save"
   await userEvent.click(await screen.findByRole("button", { name: "Save" }));
   expect(await screen.findByText(/Saved\./)).toBeInTheDocument();
   const post = calls.find((c) => c.method === "POST")!;
-  expect(await post.json()).toEqual({ key: "k1", label: "Lipitor 10 Tablet", offer_id: "b1" });
+  expect(await post.json()).toEqual({ key, label: "Lipitor 10 Tablet", offer_id: "b1" });
 });
 
 test("compare: already cheapest, save failure, and not found", async () => {

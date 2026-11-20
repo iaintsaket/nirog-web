@@ -6,6 +6,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { SourceBadge } from "@/features/search/SourceBadge";
 import { packLabel, percent, rupees, unitPriceLabel } from "@/lib/format";
 import { compareMatch } from "@/services/catalog";
+import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
 
 type State =
@@ -47,12 +48,14 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
   const base = c.searched_index != null ? c.offers[c.searched_index]?.offer : undefined;
   const ja = c.offers.find((o) => o.offer.source === "jan_aushadhi")?.offer;
   const maxUnit = Math.max(...c.offers.map((o) => o.offer.unit_price_millipaise), 1);
-  const Heading = headingLevel;
+  const picked = base ?? cheapest;
+  const Sub = headingLevel === "h1" ? "h2" : "h3";
 
   return (
     <div className="stack-lg compare">
+      {picked && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
       <section className="stack">
-        <Heading className="h2">{cheapest?.salts_label}</Heading>
+        <Sub className="h3">Same medicine, other prices</Sub>
         <dl className="stats">
           {base && (
             <div className="stat">
