@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { SourceBadge } from "@/features/search/SourceBadge";
-import { packLabel, percent, rupees, unitPriceLabel } from "@/lib/format";
+import { packLabel, percent, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
 import { compareMatch } from "@/services/catalog";
 import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
@@ -169,7 +169,9 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
             >
               <div className="rung-top">
                 <strong className="rung-title">{offer.name}</strong>
-                <span className="rung-price">{unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}</span>
+                <span className="rung-price" title={unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}>
+                  {shortUnitPrice(offer.unit_price_millipaise, offer.pack_unit)}
+                </span>
               </div>
               <div className="rung-tags">
                 <SourceBadge source={offer.source} />
