@@ -6,6 +6,7 @@ import type { SearchGroup } from "@/api/client";
 import { CompareView } from "@/features/compare/CompareView";
 import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
+import { HeroArt } from "./HeroArt";
 
 /** The page splits into list + prices once the query has this many characters. */
 const MIN = 2;
@@ -96,6 +97,7 @@ export function SearchPage() {
     <div className={`search-shell${split ? " is-split" : ""}${sheetOpen ? " sheet-open" : ""}`}>
       <div className="search-left">
         <section className="search-hero">
+          <HeroArt />
           <h1>Pay less for the same medicine</h1>
           <p className="lede">
             Same salts, strength and form, from Jan Aushadhi and other brands, with what you could save.
@@ -131,6 +133,13 @@ export function SearchPage() {
             </button>
           )}
         </form>
+        {!split && (
+          <ul className="search-trust plain" aria-label="About the prices">
+            <li>Government Jan Aushadhi price list</li>
+            <li>2.4 lakh medicines compared</li>
+            <li>No ads, no pharmacy tie-ups</li>
+          </ul>
+        )}
         {split && <ResultsList q={typed} state={state} sel={sel} onPick={(i) => { setSel(i); setSheetOpen(true); }} />}
       </div>
 
