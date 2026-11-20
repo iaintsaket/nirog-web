@@ -323,11 +323,18 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 @keyframes ripple { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(2.3); opacity: 0; } }
 .loading-row { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .9rem; margin: 14px 4px; }
 
-/* First load: the loader shows briefly over the page, then the page comes in piece by piece. */
+/* First load: the loader beats in the centre, then flies into the header logo (src/ui/Splash.tsx).
+   The CSS fade is only a fallback for when the script never runs. */
 .splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; pointer-events: none;
-  background: var(--bg); animation: splash-out .45s .6s var(--ease) both; }
+  animation: splash-out .4s 4s both; }
+.splash-bg { position: absolute; inset: 0; background: var(--bg); }
 @keyframes splash-out { to { opacity: 0; visibility: hidden; } }
-.intro { animation: card-in .55s var(--ease) both; animation-delay: calc(.75s + var(--i, 0) * 90ms); }
+.splash-flying .pulse-ring { display: none; }
+.splash-flying .pulse-mark { animation: none; }
+html.splashing .brand .pulse { visibility: hidden; }
+/* Header logo: beats like the loader, with gentler rings. */
+.brand .pulse-ring { border-width: 1.5px; }
+.intro { animation: card-in .55s var(--ease) both; animation-delay: calc(1s + var(--i, 0) * 90ms); }
 
 /* Placeholders while figures load. */
 .skeleton { min-height: 76px; background: linear-gradient(100deg, var(--surface) 30%, var(--accent-soft) 50%, var(--surface) 70%);
@@ -337,4 +344,5 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 @media (prefers-reduced-motion: reduce) {
   .splash { display: none; }
   .intro, .skeleton, .pulse-mark, .pulse-ring { animation: none; }
+  .pulse-ring { display: none; }
 }

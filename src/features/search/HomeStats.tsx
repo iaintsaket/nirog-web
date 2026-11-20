@@ -13,7 +13,7 @@ const HOVER_MS = 450;
 /** The figures land after the hero, search box and trust points (see SearchPage). */
 const FIRST_CARD_ORDER = 5;
 /** Must match `.intro` in globals.css: the line-up starts after the splash, one step apart. */
-const INTRO_MS = 750;
+const INTRO_MS = 1000;
 const STEP_MS = 90;
 
 /** Each card: its label, the number to count up to, and how to show it. Add a card by adding an entry. */
@@ -78,7 +78,7 @@ export function HomeStats() {
         ))}
       </dl>
       {stats.prices_updated_on && (
-        <p className="small muted home-stats-date">
+        <p className="small muted home-stats-date intro" style={{ "--i": FIRST_CARD_ORDER + CARDS.length } as CSSProperties}>
           Prices updated {day.format(new Date(`${stats.prices_updated_on}T00:00:00Z`))}
         </p>
       )}
