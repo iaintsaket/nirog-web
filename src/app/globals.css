@@ -224,9 +224,9 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 .ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
 .rung { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: 14px;
   background: var(--surface); transition: border-color .2s, box-shadow .25s var(--ease), transform .2s var(--ease); }
-/* Hover: the card zooms and lifts; its border stays as it is. */
+/* Hover: the card zooms and glows softly; its border stays as it is (no green outline). */
 .ladder .rung:hover { border-color: var(--border); transform: scale(1.03); z-index: 2;
-  box-shadow: 0 14px 34px -14px rgb(16 24 20 / 28%); }
+  box-shadow: 0 0 28px 4px color-mix(in srgb, var(--accent) 28%, transparent), 0 14px 30px -16px rgb(16 24 20 / 22%); }
 .ladder .rung-best:hover { border-color: var(--accent); }
 .ladder .rung-you:hover { border-color: #e0b25c; }
 .rung-best { border-color: var(--accent); position: relative; overflow: hidden;
