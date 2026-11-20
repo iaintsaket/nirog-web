@@ -1,4 +1,4 @@
-import { api, type BrandAlias, type Comparison, type SearchGroup } from "@/api/client";
+import { api, type BrandAlias, type Comparison, type SearchGroup, type Stats } from "@/api/client";
 import { call, type Result } from "./result";
 
 /** `sameSaltAs` is set when the query is a brand we have no price for; `groups` then share its salt. */
@@ -14,4 +14,9 @@ export function compareMatch(key: string, searched?: string): Promise<Result<Com
   return call(() =>
     api.GET("/v1/compare", { params: { query: { key, ...(searched ? { searched } : {}) } } }),
   );
+}
+
+/** Headline figures for the home screen. */
+export function catalogStats(): Promise<Result<Stats>> {
+  return call(() => api.GET("/v1/stats"));
 }

@@ -296,3 +296,15 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 .med-fact-wide { grid-column: 1 / -1; }
 .med-fact dt { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .med-fact dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* Live figures on the empty search screen. */
+.home-stats { margin-top: 28px; }
+.home-stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.home-stat { display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 14px; background: var(--surface); text-align: left;
+  transition: border-color .15s, transform .15s, box-shadow .15s; }
+.home-stat:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow); }
+.home-stat dt { font-size: .75rem; color: var(--muted); }
+.home-stat dd { margin: 4px 0 0; font-size: 1.35rem; font-weight: 700; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.home-stats-date { text-align: center; margin-top: 10px; }
+@media (max-width: 640px) { .home-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

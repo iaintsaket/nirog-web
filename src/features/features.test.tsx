@@ -80,6 +80,37 @@ test("search: starts from the URL query and shows empty and error states", async
   expect(await screen.findByRole("alert")).toHaveTextContent("Too many requests");
 });
 
+test("search: the empty screen shows live figures about our prices, and nothing if they fail to load", async () => {
+  mockApi({
+    ...signedOut,
+    "GET /v1/stats": {
+      medicines: 349595,
+      jan_aushadhi: 1600,
+      with_cheaper_substitute: 330613,
+      median_saving_bps: 8325,
+      prices_updated_on: "2026-11-20",
+    },
+  });
+  const { unmount } = withAuth(<SearchPage />);
+  const stats = await screen.findByRole("region", { name: "Our prices in numbers" });
+  const facts = Object.fromEntries(
+    within(stats).getAllByRole("term").map((dt) => [dt.textContent, dt.nextElementSibling?.textContent]),
+  );
+  expect(facts).toEqual({
+    "Medicines we know": "3,49,595",
+    "Jan Aushadhi medicines": "1,600",
+    "Have a cheaper exact substitute": "3,30,613",
+    "Typical saving": "83%",
+  });
+  expect(stats).toHaveTextContent("Prices updated 20 Nov 2026");
+  unmount();
+
+  mockApi({ ...signedOut, "GET /v1/stats": () => Response.json({ error: "x", message: "down" }, { status: 503 }) });
+  withAuth(<SearchPage />);
+  await waitFor(() => expect(screen.queryByRole("region", { name: "Our prices in numbers" })).not.toBeInTheDocument());
+  expect(screen.getByRole("combobox", { name: /medicine/i })).toBeInTheDocument();
+});
+
 test("search: the home link brings back the empty search screen", async () => {
   mockApi({ ...signedOut, "GET /v1/search": { groups: [], did_you_mean: [] } });
   nav.params = new URLSearchParams("q=dolo");

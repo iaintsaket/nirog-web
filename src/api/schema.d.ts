@@ -153,6 +153,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -252,6 +268,28 @@ export interface components {
         };
         /** @enum {string} */
         Source: "jan_aushadhi" | "brand";
+        /** @description Headline figures about the price data, for the home screen. */
+        StatsResponse: {
+            /** Format: int64 */
+            jan_aushadhi: number;
+            /**
+             * Format: int32
+             * @description Median saving per unit for those medicines, in basis points (5147 = 51.47%).
+             */
+            median_saving_bps: number;
+            /**
+             * Format: int64
+             * @description Every medicine we hold a price for.
+             */
+            medicines: number;
+            /** @description Date of the newest price list, YYYY-MM-DD. */
+            prices_updated_on?: string | null;
+            /**
+             * Format: int64
+             * @description Medicines with an exact substitute that costs less per unit.
+             */
+            with_cheaper_substitute: number;
+        };
         /** @enum {string} */
         Unit: "unit" | "ml" | "g";
         UserDto: {
@@ -604,6 +642,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsResponse"];
                 };
             };
         };

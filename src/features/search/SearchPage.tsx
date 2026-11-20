@@ -7,6 +7,7 @@ import { CompareView } from "@/features/compare/CompareView";
 import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
 import { HeroArt } from "./HeroArt";
+import { HomeStats } from "./HomeStats";
 import { HOME_EVENT } from "./HomeLink";
 
 /** The page splits into list + prices once the query has this many characters. */
@@ -142,10 +143,10 @@ export function SearchPage() {
         {!split && (
           <ul className="search-trust plain" aria-label="About the prices">
             <li>Government Jan Aushadhi prices</li>
-            <li>3.5 lakh medicines</li>
             <li>No ads or tie-ups</li>
           </ul>
         )}
+        {!split && <HomeStats />}
         {split && (
           <ResultsList
             q={typed}
