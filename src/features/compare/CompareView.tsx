@@ -3,11 +3,11 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { SourceBadge } from "@/features/search/SourceBadge";
-import { formLabel, packLabel, percent, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
+import { formLabel, percent, rupees } from "@/lib/format";
 import { compareMatch } from "@/services/catalog";
 import { CloseMatches } from "./CloseMatches";
-import { CompareDialog } from "./CompareDialog";
+import { CompareProvider } from "./CompareContext";
+import { MedicineTile } from "./MedicineTile";
 import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
 import { Loading } from "@/ui/Pulse";
@@ -16,9 +16,6 @@ type State =
   | { kind: "loading" }
   | { kind: "done"; data: Comparison }
   | { kind: "error"; message: string };
-
-/** At most this many alternatives can be added to one comparison. */
-const MAX_COMPARE = 3;
 
 /** Place in the entrance line-up: cards land one after another. */
 const order = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -96,9 +93,6 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
   const [state, setState] = useState<State>({ kind: "loading" });
   const [filter, setFilter] = useState<string | null>(null);
   const [dearestFirst, setDearestFirst] = useState(false);
-  /** Alternatives added to compare (offer ids), and the ones shown in the open comparison. */
-  const [picks, setPicks] = useState<string[]>([]);
-  const [open, setOpen] = useState<string[] | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -106,8 +100,6 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading state for a new key
     setState({ kind: "loading" });
     setFilter(null);
-    setPicks([]);
-    setOpen(null);
     compareMatch(matchKey, searched).then((r) => {
       if (!live) return;
       setState(r.ok ? { kind: "done", data: r.data } : { kind: "error", message: r.message });
@@ -143,6 +135,37 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
   const maxUnit = Math.max(...c.offers.map((o) => o.offer.unit_price_millipaise), 1);
   const picked = base ?? cheapest;
   const Sub = headingLevel === "h1" ? "h2" : "h3";
+  const ladder = (
+    <ol className="ladder plain" aria-label="Substitutes, cheapest first">
+      {rows.map(({ offer, links, index: i }, n) => {
+        const you = i === c.searched_index;
+        return (
+          <MedicineTile
+            key={offer.id}
+            offer={offer}
+            links={links}
+            order={5 + Math.min(n, 10)}
+            tone={you ? "you" : i === 0 ? "best" : undefined}
+            bar={{
+              width: (offer.unit_price_millipaise / maxUnit) * 100,
+              tone: you ? " bar-you" : i === 0 || offer.source === "jan_aushadhi" ? " bar-good" : "",
+            }}
+            tags={
+              <>
+                {i === 0 && <span className="badge badge-cheapest">Cheapest</span>}
+                {you && <span className="badge badge-searched">You searched</span>}
+                {base && offer.unit_price_millipaise < base.unit_price_millipaise && (
+                  <span className="badge badge-save">
+                    Save {rupees(((base.unit_price_millipaise - offer.unit_price_millipaise) * base.pack_count) / 1000)} per pack
+                  </span>
+                )}
+              </>
+            }
+          />
+        );
+      })}
+    </ol>
+  );
 
   return (
     <div className="stack-lg compare">
@@ -219,108 +242,14 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
         {user && <SaveButton matchKey={c.key} offerId={base?.id} defaultLabel={base?.name ?? cheapest?.name ?? ""} />}
       </section>
 
-      <ol className="ladder plain" aria-label="Substitutes, cheapest first">
-        {rows.map(({ offer, links, index: i }, n) => {
-          const you = i === c.searched_index;
-          const tone = you ? " bar-you" : i === 0 || offer.source === "jan_aushadhi" ? " bar-good" : "";
-          return (
-            <li
-              key={offer.id}
-              className={`rung card-in${you ? " rung-you" : i === 0 ? " rung-best" : ""}${picked && offer.id !== picked.id ? " rung-clickable" : ""}`}
-              style={order(5 + Math.min(n, 10))}
-              onClick={(e) => {
-                // The whole card opens the comparison; its links and buttons keep their own jobs.
-                if (!picked || offer.id === picked.id || (e.target as HTMLElement).closest("a, button")) return;
-                setOpen([offer.id]);
-              }}
-            >
-              <div className="rung-top">
-                {picked && offer.id !== picked.id ? (
-                  <button
-                    type="button"
-                    className="rung-open"
-                    aria-label={`Compare ${offer.name} with ${picked.name}`}
-                    onClick={() => setOpen([offer.id])}
-                  >
-                    <strong className="rung-title">{offer.name}</strong>
-                  </button>
-                ) : (
-                  <strong className="rung-title">{offer.name}</strong>
-                )}
-                <span className="rung-price" title={unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}>
-                  {shortUnitPrice(offer.unit_price_millipaise, offer.pack_unit)}
-                </span>
-              </div>
-              <div className="rung-tags">
-                <SourceBadge source={offer.source} />
-                {i === 0 && <span className="badge badge-cheapest">Cheapest</span>}
-                {you && <span className="badge badge-searched">You searched</span>}
-                {base && offer.unit_price_millipaise < base.unit_price_millipaise && (
-                  <span className="badge badge-save">
-                    Save {rupees(((base.unit_price_millipaise - offer.unit_price_millipaise) * base.pack_count) / 1000)} per pack
-                  </span>
-                )}
-                <span className="muted small rung-meta">
-                  {offer.manufacturer} · {rupees(offer.price_paise)} for {packLabel(offer.pack_count, offer.pack_unit)}
-                </span>
-              </div>
-              <div className="rung-bar" aria-hidden="true">
-                <span
-                  className={`bar${tone}`}
-                  style={{ width: `${Math.max(2, (offer.unit_price_millipaise / maxUnit) * 100)}%` }}
-                />
-              </div>
-              {picked && offer.id !== picked.id && (
-                <button
-                  type="button"
-                  className="add-compare"
-                  aria-pressed={picks.includes(offer.id)}
-                  aria-label={`Add ${offer.name} to compare`}
-                  disabled={!picks.includes(offer.id) && picks.length >= MAX_COMPARE}
-                  onClick={() =>
-                    setPicks((p) => (p.includes(offer.id) ? p.filter((x) => x !== offer.id) : [...p, offer.id]))
-                  }
-                >
-                  {picks.includes(offer.id) ? "✓ Added" : "+ Compare"}
-                </button>
-              )}
-              {links.length > 0 && (
-                <div className="rung-links">
-                  {links.map((l) => (
-                    <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="link-chip">
-                      {l.label} ↗
-                    </a>
-                  ))}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-
-      {picks.length > 0 && (
-        <div className="compare-tray card-in" role="region" aria-label="Compare tray">
-          <span className="small">
-            {picks.length} of {MAX_COMPARE} added
-          </span>
-          <button type="button" className="button" onClick={() => setOpen(picks)}>
-            Compare {picks.length + 1} medicines
-          </button>
-          <button type="button" className="link-button" onClick={() => setPicks([])}>
-            Clear
-          </button>
-        </div>
+      {picked ? (
+        <CompareProvider key={c.key} mine={picked} form={formLabel(c.key)}>
+          {ladder}
+          {c.saving_per_pack_paise <= 0 && <CloseMatches matchKey={c.key} />}
+        </CompareProvider>
+      ) : (
+        ladder
       )}
-      {open && picked && (
-        <CompareDialog
-          mine={picked}
-          others={c.offers.filter((o) => open.includes(o.offer.id))}
-          form={formLabel(c.key)}
-          onClose={() => setOpen(null)}
-        />
-      )}
-
-      {c.saving_per_pack_paise <= 0 && <CloseMatches matchKey={c.key} />}
 
       <p className="small muted disclaimer">
         Prices are maximum retail prices from public lists and may differ at the shop. Nirog compares
