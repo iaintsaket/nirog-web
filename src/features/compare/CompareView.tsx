@@ -33,6 +33,10 @@ type QuickFilter = {
   note: (o: Offer) => string;
   keep: (row: Row, c: Comparison, picked: Offer) => boolean;
   best?: boolean;
+  /** Also offered as a chip beside the Alternatives heading, with this label. */
+  chip?: string;
+  /** false: chip only, no summary box. */
+  box?: boolean;
 };
 
 const QUICK_FILTERS: QuickFilter[] = [
@@ -60,6 +64,17 @@ const QUICK_FILTERS: QuickFilter[] = [
     pick: (c) => c.offers.find((o) => o.offer.source === "jan_aushadhi")?.offer,
     note: () => "At any Kendra",
     keep: (r) => r.offer.source === "jan_aushadhi",
+    chip: "Jan Aushadhi",
+  },
+  {
+    id: "brand",
+    label: "Brands",
+    shows: "brands",
+    pick: (c) => c.offers.find((o) => o.offer.source === "brand")?.offer,
+    note: (o) => o.name,
+    keep: (r) => r.offer.source === "brand",
+    chip: "Brands",
+    box: false,
   },
 ];
 
@@ -69,6 +84,7 @@ type Props = { matchKey: string; searched?: string; headingLevel?: "h1" | "h2" }
 export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [filter, setFilter] = useState<string | null>(null);
+  const [dearestFirst, setDearestFirst] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -97,14 +113,17 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
   const c = state.data;
   const cheapest = c.offers[0]?.offer;
   const base = c.searched_index != null ? c.offers[c.searched_index]?.offer : undefined;
-  const boxes = QUICK_FILTERS.flatMap((f) => {
+  const available = QUICK_FILTERS.flatMap((f) => {
     const offer = f.pick(c);
     return offer ? [{ f, offer }] : [];
   });
-  const active = boxes.find((b) => b.f.id === filter);
-  const rows = c.offers
+  const boxes = available.filter((b) => b.f.box !== false);
+  const chips = available.filter((b) => b.f.chip);
+  const active = available.find((b) => b.f.id === filter);
+  const kept = c.offers
     .map(({ offer, links }, index) => ({ offer, links, index }))
     .filter((r) => !active || active.f.keep(r, c, active.offer));
+  const rows = dearestFirst ? [...kept].reverse() : kept;
   const maxUnit = Math.max(...c.offers.map((o) => o.offer.unit_price_millipaise), 1);
   const picked = base ?? cheapest;
   const Sub = headingLevel === "h1" ? "h2" : "h3";
@@ -113,7 +132,34 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
     <div className="stack-lg compare">
       {picked && <MedicineCard offer={picked} matchKey={c.key} headingLevel={headingLevel} />}
       <section className="stack">
-        <Sub className="h2">Alternatives</Sub>
+        <div className="alt-head">
+          <Sub className="h2">Alternatives</Sub>
+          <div className="alt-tools">
+            <div className="chips" role="group" aria-label="Show">
+              <button type="button" className="chip-toggle" aria-pressed={filter === null} onClick={() => setFilter(null)}>
+                All
+              </button>
+              {chips.map(({ f }) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="chip-toggle"
+                  aria-pressed={filter === f.id}
+                  onClick={() => setFilter((cur) => (cur === f.id ? null : f.id))}
+                >
+                  {f.chip}
+                </button>
+              ))}
+            </div>
+            <label className="sort">
+              <span className="visually-hidden">Sort</span>
+              <select aria-label="Sort" value={dearestFirst ? "desc" : "asc"} onChange={(e) => setDearestFirst(e.target.value === "desc")}>
+                <option value="asc">Price: low to high</option>
+                <option value="desc">Price: high to low</option>
+              </select>
+            </label>
+          </div>
+        </div>
         <div className="stats" role="group" aria-label="Quick filters">
           {boxes.map(({ f, offer }, n) => (
             <button

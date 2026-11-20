@@ -270,19 +270,32 @@ test("compare: the Cheapest, Jan Aushadhi and You searched boxes filter the list
   await screen.findByRole("status");
   expect(names()).toEqual(all);
 
-  const cheapest = screen.getByRole("button", { name: /^Cheapest/ });
+  const boxes = screen.getByRole("group", { name: "Quick filters" });
+  const cheapest = within(boxes).getByRole("button", { name: /^Cheapest/ });
   await userEvent.click(cheapest);
   expect(cheapest).toHaveAttribute("aria-pressed", "true");
   expect(names()).toEqual(["Atorvastatin Tablets IP 10mg"]);
 
-  await userEvent.click(screen.getByRole("button", { name: /^Jan Aushadhi/ }));
+  await userEvent.click(within(boxes).getByRole("button", { name: /^Jan Aushadhi/ }));
   expect(cheapest).toHaveAttribute("aria-pressed", "false");
   expect(names()).toEqual(["Atorvastatin Tablets IP 10mg", "Atorvastatin JA Strip"]);
 
-  await userEvent.click(screen.getByRole("button", { name: /^You searched/ }));
+  await userEvent.click(within(boxes).getByRole("button", { name: /^You searched/ }));
   expect(names()).toEqual(["Lipitor 10 Tablet"]);
   await userEvent.click(screen.getByRole("button", { name: "Show all 3" }));
   expect(names()).toEqual(all);
+
+  const chips = screen.getByRole("group", { name: "Show" });
+  await userEvent.click(within(chips).getByRole("button", { name: "Brands" }));
+  expect(names()).toEqual(["Lipitor 10 Tablet"]);
+  await userEvent.click(within(chips).getByRole("button", { name: "Jan Aushadhi" }));
+  expect(names()).toEqual(["Atorvastatin Tablets IP 10mg", "Atorvastatin JA Strip"]);
+  await userEvent.click(within(chips).getByRole("button", { name: "All" }));
+  expect(within(chips).getByRole("button", { name: "All" })).toHaveAttribute("aria-pressed", "true");
+  expect(names()).toEqual(all);
+
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort" }), "Price: high to low");
+  expect(names()).toEqual([...all].reverse());
 });
 
 test("compare: already cheapest, save failure, and not found", async () => {
