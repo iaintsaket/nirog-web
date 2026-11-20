@@ -238,6 +238,8 @@ export interface components {
             salts_label: string;
         };
         SearchResponse: {
+            /** @description When nothing matched: the closest medicine or salt names, best first. */
+            did_you_mean: string[];
             groups: components["schemas"]["SearchGroupDto"][];
         };
         /** @enum {string} */

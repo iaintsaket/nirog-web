@@ -224,3 +224,8 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .search-shell *, .search-shell { transition-duration: 0s !important; animation-duration: 0s !important; }
 }
+
+.suggestions { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: .875rem; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.chip:hover { border-color: var(--accent); background: var(--accent-soft); }

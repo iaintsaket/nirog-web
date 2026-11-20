@@ -15,7 +15,7 @@ const DEBOUNCE_MS = 150;
 
 type State =
   | { kind: "loading" }
-  | { kind: "done"; groups: SearchGroup[] }
+  | { kind: "done"; groups: SearchGroup[]; didYouMean: string[] }
   | { kind: "error"; message: string };
 
 export function compareHref(key: string, searched?: string): string {
@@ -58,7 +58,7 @@ export function SearchPage() {
     searchMedicines(q).then((r) => {
       if (!live) return;
       setSel(0);
-      setState(r.ok ? { kind: "done", groups: r.data } : { kind: "error", message: r.message });
+      setState(r.ok ? { kind: "done", ...r.data } : { kind: "error", message: r.message });
     });
     return () => {
       live = false;
@@ -131,7 +131,18 @@ export function SearchPage() {
             </button>
           )}
         </form>
-        {split && <ResultsList q={typed} state={state} sel={sel} onPick={(i) => { setSel(i); setSheetOpen(true); }} />}
+        {split && (
+          <ResultsList
+            q={typed}
+            state={state}
+            sel={sel}
+            onPick={(i) => {
+              setSel(i);
+              setSheetOpen(true);
+            }}
+            onSuggest={setText}
+          />
+        )}
       </div>
 
       <section className="search-right" aria-label="Prices">
@@ -149,9 +160,15 @@ export function SearchPage() {
   );
 }
 
-type ListProps = { q: string; state: State; sel: number; onPick: (i: number) => void };
+type ListProps = {
+  q: string;
+  state: State;
+  sel: number;
+  onPick: (i: number) => void;
+  onSuggest: (name: string) => void;
+};
 
-function ResultsList({ q, state, sel, onPick }: ListProps) {
+function ResultsList({ q, state, sel, onPick, onSuggest }: ListProps) {
   if (state.kind === "loading") {
     return (
       <p className="results-note" aria-busy="true">
@@ -168,10 +185,30 @@ function ResultsList({ q, state, sel, onPick }: ListProps) {
   }
   if (state.groups.length === 0) {
     return (
-      <p className="notice">
-        No medicines match <strong>{q}</strong>. Try the brand name as printed on the strip, or the
-        salt name.
-      </p>
+      <div className="notice stack-sm not-found">
+        <p>
+          <strong>We don&apos;t have “{q}” yet.</strong> Our prices come from public lists that miss
+          some brands.
+        </p>
+        {state.didYouMean.length > 0 && (
+          <div className="stack-sm">
+            <p className="small muted">Did you mean</p>
+            <ul className="suggestions plain">
+              {state.didYouMean.map((name) => (
+                <li key={name}>
+                  <button type="button" className="chip" onClick={() => onSuggest(name)}>
+                    {name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <p className="small muted">
+          Or search the salt printed on the strip, for example “Aspirin” or “Paracetamol”, to see
+          cheaper medicines with the same contents.
+        </p>
+      </div>
     );
   }
   return (
