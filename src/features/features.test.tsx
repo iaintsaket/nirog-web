@@ -1,7 +1,7 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { beforeEach, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { comparison, mockApi, nav, offer, user } from "@/test/helpers";
 import { AuthMenu } from "./auth/AuthMenu";
 import { AuthProvider } from "./auth/AuthProvider";
@@ -13,6 +13,8 @@ import { SearchPage } from "./search/SearchPage";
 
 const withAuth = (ui: ReactNode) => render(<AuthProvider>{ui}</AuthProvider>);
 const signedOut = { "GET /v1/me": () => Response.json({ error: "unauthorized", message: "x" }, { status: 401 }) };
+
+afterEach(() => vi.unstubAllGlobals());
 
 beforeEach(() => {
   nav.params = new URLSearchParams();
@@ -109,6 +111,38 @@ test("search: the empty screen shows live figures about our prices, and nothing 
   withAuth(<SearchPage />);
   await waitFor(() => expect(screen.queryByRole("region", { name: "Our prices in numbers" })).not.toBeInTheDocument());
   expect(screen.getByRole("combobox", { name: /medicine/i })).toBeInTheDocument();
+});
+
+test("search: hovering a figure counts it up again from zero", async () => {
+  let now = 0;
+  let frames: FrameRequestCallback[] = [];
+  const flush = (ms: number) => {
+    now += ms;
+    const run = frames;
+    frames = [];
+    act(() => run.forEach((f) => f(now)));
+  };
+  vi.stubGlobal("matchMedia", () => ({ matches: false }));
+  vi.stubGlobal("performance", { now: () => now });
+  vi.stubGlobal("requestAnimationFrame", (f: FrameRequestCallback) => frames.push(f));
+  vi.stubGlobal("cancelAnimationFrame", () => {});
+  mockApi({
+    ...signedOut,
+    "GET /v1/stats": { medicines: 1000, jan_aushadhi: 10, with_cheaper_substitute: 900, median_saving_bps: 8000, prices_updated_on: null },
+  });
+  withAuth(<SearchPage />);
+  const card = (await screen.findByText("Medicines we know")).parentElement!;
+  const value = () => card.querySelector("dd")?.textContent;
+  flush(2000);
+  expect(value()).toBe("1,000");
+
+  await userEvent.hover(card);
+  flush(0);
+  expect(value()).toBe("0");
+  flush(500);
+  expect(Number(value()?.replace(/,/g, ""))).toBeGreaterThan(0);
+  flush(2000);
+  expect(value()).toBe("1,000");
 });
 
 test("search: the home link brings back the empty search screen", async () => {

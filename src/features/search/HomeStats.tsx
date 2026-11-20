@@ -20,13 +20,18 @@ function prefersStill(): boolean {
   return typeof window.matchMedia !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Counts from 0 to 1 over COUNT_UP_MS, eased; jumps straight to 1 when motion is unwanted. */
-function useProgress(running: boolean): number {
+/**
+ * Counts from 0 to 1 over COUNT_UP_MS, eased, and again each time `run` changes.
+ * Jumps straight to 1 when motion is unwanted.
+ */
+function useProgress(run: number): number {
   const [p, setP] = useState(0);
   useEffect(() => {
-    if (!running || prefersStill()) return;
+    if (prefersStill()) return;
     let frame = 0;
     const start = performance.now();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- restart the count from zero
+    setP(0);
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / COUNT_UP_MS);
       setP(1 - (1 - t) ** 3);
@@ -39,9 +44,9 @@ function useProgress(running: boolean): number {
       cancelAnimationFrame(frame);
       clearTimeout(done);
     };
-  }, [running]);
+  }, [run]);
   // Without motion the final numbers show on the first render, with no flash of zeros.
-  return running && prefersStill() ? 1 : p;
+  return prefersStill() ? 1 : p;
 }
 
 /** Live figures about our prices for the empty search screen. Shows nothing if they fail to load. */
@@ -54,16 +59,12 @@ export function HomeStats() {
       live = false;
     };
   }, []);
-  const p = useProgress(stats != null);
   if (!stats) return null;
   return (
     <section className="home-stats" aria-label="Our prices in numbers">
       <dl className="home-stats-grid">
         {CARDS.map((c, i) => (
-          <div key={c.label} className="home-stat card-in" style={{ "--i": i } as CSSProperties}>
-            <dt>{c.label}</dt>
-            <dd>{c.show(Math.round(c.value(stats) * p))}</dd>
-          </div>
+          <StatCard key={c.label} label={c.label} order={i} text={(p) => c.show(Math.round(c.value(stats) * p))} />
         ))}
       </dl>
       {stats.prices_updated_on && (
@@ -72,5 +73,17 @@ export function HomeStats() {
         </p>
       )}
     </section>
+  );
+}
+
+/** One figure. It counts up when it first appears and again whenever it is hovered. */
+function StatCard({ label, order, text }: { label: string; order: number; text: (p: number) => string }) {
+  const [run, setRun] = useState(0);
+  const p = useProgress(run);
+  return (
+    <div className="home-stat card-in" style={{ "--i": order } as CSSProperties} onMouseEnter={() => setRun((n) => n + 1)}>
+      <dt>{label}</dt>
+      <dd>{text(p)}</dd>
+    </div>
   );
 }
