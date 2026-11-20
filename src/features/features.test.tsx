@@ -298,6 +298,49 @@ test("compare: the Cheapest, Jan Aushadhi and You searched boxes filter the list
   expect(names()).toEqual([...all].reverse());
 });
 
+test("compare: clicking an alternative opens a side-by-side comparison with your medicine", async () => {
+  const key = "tablet|standard|atorvastatin:10mg|unit";
+  mockApi({ ...signedOut, "GET /v1/compare": comparison({ key }) });
+  nav.params = new URLSearchParams(`key=${encodeURIComponent(key)}&searched=b1`);
+  withAuth(<ComparePage />);
+  await screen.findByRole("status");
+
+  await userEvent.click(screen.getByRole("button", { name: "Compare Atorvastatin Tablets IP 10mg with Lipitor 10 Tablet" }));
+  const dialog = screen.getByRole("dialog", { name: "Lipitor 10 Tablet vs Atorvastatin Tablets IP 10mg" });
+  const rows = Object.fromEntries(
+    within(dialog)
+      .getAllByRole("row")
+      .slice(1)
+      .map((tr) => [tr.querySelector("th")?.textContent, [...tr.querySelectorAll("td")].map((td) => td.textContent)]),
+  );
+  expect(rows).toEqual({
+    "Made by": ["Pfizer", "Pfizer"],
+    Type: ["Brand", "Jan Aushadhi"],
+    Composition: ["Atorvastatin 10mg", "Atorvastatin 10mg ✓ Same"],
+    Form: ["Tablet", "Tablet ✓ Same"],
+    Pack: ["10 tablets/capsules", "10 tablets/capsules"],
+    "Price per pack": ["₹200.00", "₹9.08"],
+    "Per unit": ["₹20.00 per tablet/capsule", "₹0.91 per tablet/capsule"],
+  });
+  expect(within(dialog).getByText(/You save/)).toHaveTextContent("You save ₹190.92 per pack (95%) with Atorvastatin Tablets IP 10mg.");
+  expect(within(dialog).getByRole("link", { name: /Jan Aushadhi Kendra/ })).toBeInTheDocument();
+
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+  // Add to compare: a tray collects up to 3 alternatives and opens the same comparison.
+  const add = screen.getByRole("button", { name: "Add Atorvastatin Tablets IP 10mg to compare" });
+  await userEvent.click(add);
+  expect(add).toHaveAttribute("aria-pressed", "true");
+  const tray = screen.getByRole("region", { name: "Compare tray" });
+  expect(tray).toHaveTextContent("1 of 3 added");
+  await userEvent.click(within(tray).getByRole("button", { name: "Compare 2 medicines" }));
+  expect(screen.getByRole("dialog", { name: "Lipitor 10 Tablet vs Atorvastatin Tablets IP 10mg" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Close comparison" }));
+  await userEvent.click(within(tray).getByRole("button", { name: "Clear" }));
+  expect(screen.queryByRole("region", { name: "Compare tray" })).not.toBeInTheDocument();
+});
+
 test("compare: already cheapest, save failure, and not found", async () => {
   mockApi({
     "GET /v1/me": user,

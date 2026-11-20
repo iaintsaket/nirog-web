@@ -4,8 +4,9 @@ import { useEffect, useState, type CSSProperties } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { SourceBadge } from "@/features/search/SourceBadge";
-import { packLabel, percent, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
+import { formLabel, packLabel, percent, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
 import { compareMatch } from "@/services/catalog";
+import { CompareDialog } from "./CompareDialog";
 import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
 import { Loading } from "@/ui/Pulse";
@@ -14,6 +15,9 @@ type State =
   | { kind: "loading" }
   | { kind: "done"; data: Comparison }
   | { kind: "error"; message: string };
+
+/** At most this many alternatives can be added to one comparison. */
+const MAX_COMPARE = 3;
 
 /** Place in the entrance line-up: cards land one after another. */
 const order = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -85,6 +89,9 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
   const [state, setState] = useState<State>({ kind: "loading" });
   const [filter, setFilter] = useState<string | null>(null);
   const [dearestFirst, setDearestFirst] = useState(false);
+  /** Alternatives added to compare (offer ids), and the ones shown in the open comparison. */
+  const [picks, setPicks] = useState<string[]>([]);
+  const [open, setOpen] = useState<string[] | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -92,6 +99,8 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading state for a new key
     setState({ kind: "loading" });
     setFilter(null);
+    setPicks([]);
+    setOpen(null);
     compareMatch(matchKey, searched).then((r) => {
       if (!live) return;
       setState(r.ok ? { kind: "done", data: r.data } : { kind: "error", message: r.message });
@@ -214,7 +223,18 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
               style={order(5 + Math.min(n, 10))}
             >
               <div className="rung-top">
-                <strong className="rung-title">{offer.name}</strong>
+                {picked && offer.id !== picked.id ? (
+                  <button
+                    type="button"
+                    className="rung-open"
+                    aria-label={`Compare ${offer.name} with ${picked.name}`}
+                    onClick={() => setOpen([offer.id])}
+                  >
+                    <strong className="rung-title">{offer.name}</strong>
+                  </button>
+                ) : (
+                  <strong className="rung-title">{offer.name}</strong>
+                )}
                 <span className="rung-price" title={unitPriceLabel(offer.unit_price_millipaise, offer.pack_unit)}>
                   {shortUnitPrice(offer.unit_price_millipaise, offer.pack_unit)}
                 </span>
@@ -238,6 +258,20 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
                   style={{ width: `${Math.max(2, (offer.unit_price_millipaise / maxUnit) * 100)}%` }}
                 />
               </div>
+              {picked && offer.id !== picked.id && (
+                <button
+                  type="button"
+                  className="add-compare"
+                  aria-pressed={picks.includes(offer.id)}
+                  aria-label={`Add ${offer.name} to compare`}
+                  disabled={!picks.includes(offer.id) && picks.length >= MAX_COMPARE}
+                  onClick={() =>
+                    setPicks((p) => (p.includes(offer.id) ? p.filter((x) => x !== offer.id) : [...p, offer.id]))
+                  }
+                >
+                  {picks.includes(offer.id) ? "✓ Added" : "+ Compare"}
+                </button>
+              )}
               {links.length > 0 && (
                 <div className="rung-links">
                   {links.map((l) => (
@@ -251,6 +285,28 @@ export function CompareView({ matchKey, searched, headingLevel = "h1" }: Props) 
           );
         })}
       </ol>
+
+      {picks.length > 0 && (
+        <div className="compare-tray card-in" role="region" aria-label="Compare tray">
+          <span className="small">
+            {picks.length} of {MAX_COMPARE} added
+          </span>
+          <button type="button" className="button" onClick={() => setOpen(picks)}>
+            Compare {picks.length + 1} medicines
+          </button>
+          <button type="button" className="link-button" onClick={() => setPicks([])}>
+            Clear
+          </button>
+        </div>
+      )}
+      {open && picked && (
+        <CompareDialog
+          mine={picked}
+          others={c.offers.filter((o) => open.includes(o.offer.id))}
+          form={formLabel(c.key)}
+          onClose={() => setOpen(null)}
+        />
+      )}
 
       <p className="small muted disclaimer">
         Prices are maximum retail prices from public lists and may differ at the shop. Nirog compares

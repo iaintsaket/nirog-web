@@ -393,3 +393,32 @@ html.splashing .brand .pulse { visibility: hidden; }
   background-image: var(--molecule), linear-gradient(135deg, var(--warn-soft), var(--surface) 80%);
   background-size: 132px 114px, auto; background-position: right -10px top -14px, 0 0; }
 .result[aria-selected="true"] { box-shadow: 0 0 0 1px #e0b25c; }
+
+/* Click an alternative's name, or add up to 3 to the tray, to compare side by side with yours. */
+.rung-open { all: unset; cursor: pointer; }
+.rung-open:hover .rung-title, .rung-open:focus-visible .rung-title { color: var(--accent-strong); text-decoration: underline; }
+.rung-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.add-compare { align-self: flex-start; font: inherit; font-size: .78rem; padding: 3px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px dashed var(--accent); background: transparent; color: var(--accent-strong); }
+.add-compare[aria-pressed="true"] { background: var(--accent); color: #fff; border-style: solid; }
+.add-compare:disabled { opacity: .45; cursor: not-allowed; }
+.compare-tray { position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--accent);
+  box-shadow: 0 8px 28px -10px color-mix(in srgb, var(--accent) 50%, transparent); width: fit-content; margin: 0 auto; }
+.dialog-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
+  background: rgb(10 20 15 / 45%); backdrop-filter: blur(3px); }
+.dialog { width: min(920px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--surface);
+  border-radius: 16px; padding: 18px 20px; box-shadow: 0 24px 60px -20px rgb(0 0 0 / 40%); display: grid; gap: 14px; }
+.dialog-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dialog-head .h3 { margin: 0; }
+.dialog-close { font: inherit; border: 0; background: var(--bg); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; flex: none; }
+.dialog-scroll { overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.compare-table th, .compare-table td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.compare-table thead th { font-weight: 700; }
+.compare-table tbody th { color: var(--muted); font-weight: 500; white-space: nowrap; }
+.compare-table .col-mine { background: var(--warn-soft); }
+.compare-table .same { color: var(--accent-strong); font-weight: 600; white-space: nowrap; }
+.compare-savings li { padding: 8px 12px; border-radius: 10px; }
+.save-yes { background: var(--accent-soft); }
+.save-no { background: var(--bg); color: var(--muted); }
