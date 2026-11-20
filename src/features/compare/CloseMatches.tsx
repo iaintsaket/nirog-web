@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState, type CSSProperties } from "react";
+import { useEffect, useId, useState } from "react";
 import type { CloseMatch } from "@/api/client";
-import { SourceBadge } from "@/features/search/SourceBadge";
-import { shortUnitPrice } from "@/lib/format";
 import { closeMatches } from "@/services/catalog";
+import { MedicineTile } from "./MedicineTile";
 
 /** Nearby formulas for a medicine with no cheaper exact substitute, each saying what differs. */
 export function CloseMatches({ matchKey }: { matchKey: string }) {
@@ -30,25 +29,27 @@ export function CloseMatches({ matchKey }: { matchKey: string }) {
       </p>
       <ul className="ladder plain">
         {matches.map((m, i) => (
-          <li key={m.key} className="rung close-card card-in" style={{ "--i": i } as CSSProperties}>
-            <div className="rung-top">
-              <strong className="rung-title">{m.cheapest.name}</strong>
-              <span className="rung-price">from {shortUnitPrice(m.cheapest.unit_price_millipaise, m.cheapest.pack_unit)}</span>
-            </div>
-            <div className="rung-tags">
-              <SourceBadge source={m.cheapest.source} />
-              {m.differences.map((d) => (
-                <span key={d} className="badge badge-diff">
-                  {d}
-                </span>
-              ))}
-            </div>
-            <span className="small muted">{m.salts_label}</span>
-            <Link className="link-chip close-link" href={`/compare?key=${encodeURIComponent(m.key)}`}>
-              See {m.offers} {m.offers === 1 ? "price" : "prices"} →
-            </Link>
-          </li>
+          <MedicineTile
+            key={m.key}
+            offer={m.cheapest}
+            order={i}
+            pricePrefix="from "
+            tags={m.differences.map((d) => (
+              <span key={d} className="badge badge-diff">
+                {d}
+              </span>
+            ))}
+            footer={
+              <>
+                <span className="small muted">{m.salts_label}</span>
+                <Link className="link-chip close-link" href={`/compare?key=${encodeURIComponent(m.key)}`}>
+                  See {m.offers} {m.offers === 1 ? "price" : "prices"} →
+                </Link>
+              </>
+            }
+          />
         ))}
+
       </ul>
     </section>
   );

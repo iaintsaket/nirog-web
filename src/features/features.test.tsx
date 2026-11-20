@@ -408,6 +408,12 @@ test("compare: with no cheaper exact substitute, close matches show what differs
     "href",
     `/compare?key=${encodeURIComponent("topical|standard|x:1%|g")}`,
   );
+  // Same card as everywhere: clicking it compares with yours, and it can join the compare tray.
+  await userEvent.click(within(close).getByText("from ₹1.50/g"));
+  expect(screen.getByRole("dialog", { name: "Lipitor 10 Tablet vs Ellynac Hot Gel" })).toBeInTheDocument();
+  await userEvent.keyboard("{Escape}");
+  await userEvent.click(within(close).getByRole("button", { name: "Add Ellynac Hot Gel to compare" }));
+  expect(screen.getByRole("region", { name: "Compare tray" })).toHaveTextContent("1 of 3 added");
 });
 
 test("compare: already cheapest, save failure, and not found", async () => {
