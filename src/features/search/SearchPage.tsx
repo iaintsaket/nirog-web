@@ -12,6 +12,7 @@ import { Divider, useSplit } from "./Divider";
 import { HeroArt } from "./HeroArt";
 import { HomeStats } from "./HomeStats";
 import { Loading } from "@/ui/Pulse";
+import { useDragToClose } from "@/ui/useDragToClose";
 import { HOME_EVENT } from "./HomeLink";
 
 /** The page splits into list + prices once the query has this many characters. */
@@ -63,6 +64,7 @@ export function SearchPage() {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [sel, setSel] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetDrag = useDragToClose(() => setSheetOpen(false));
   const split2 = useSplit();
   const wide = useWide();
 
@@ -209,8 +211,13 @@ export function SearchPage() {
           ›
         </button>
       )}
-      <section className="search-right" aria-label="Prices">
-        <div className="sheet-bar">
+      <section
+        className="search-right"
+        aria-label="Prices"
+        // While dragged, the sheet follows the finger with no easing.
+        style={sheetDrag.offset ? { transform: `translateY(${sheetDrag.offset}px)`, transition: "none" } : undefined}
+      >
+        <div className="sheet-bar" {...sheetDrag.handlers}>
           <span className="sheet-grab" aria-hidden="true" />
           <button type="button" className="button button-quiet" onClick={() => setSheetOpen(false)}>
             Close
