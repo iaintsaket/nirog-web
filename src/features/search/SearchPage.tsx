@@ -9,8 +9,8 @@ import { shortUnitPrice } from "@/lib/format";
 import { searchMedicines } from "@/services/catalog";
 import { BackdropArt } from "./BackdropArt";
 import { Divider, useSplit } from "./Divider";
-import { HeroArt } from "./HeroArt";
 import { HomeStats } from "./HomeStats";
+import { PLACEHOLDER, SearchHero, SearchTrust } from "./Intro";
 import { Loading } from "@/ui/Pulse";
 import { useDragToClose } from "@/ui/useDragToClose";
 import { HOME_EVENT } from "./HomeLink";
@@ -134,17 +134,7 @@ export function SearchPage() {
     >
       <BackdropArt />
       <div className="search-left">
-        <section className="search-hero">
-          <div className="intro" style={{ "--i": 0 } as CSSProperties}>
-            <HeroArt />
-          </div>
-          <h1 className="intro" style={{ "--i": 1 } as CSSProperties}>
-            Pay less for the same medicine
-          </h1>
-          <p className="lede intro" style={{ "--i": 2 } as CSSProperties}>
-            Same salts, strength and form, from Jan Aushadhi and other brands, with what you could save.
-          </p>
-        </section>
+        <SearchHero />
         <form role="search" className="search-form intro" style={{ "--i": 3 } as CSSProperties} onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="q" className="visually-hidden">
             Medicine name or salt
@@ -158,7 +148,7 @@ export function SearchPage() {
             aria-expanded={expanded}
             aria-controls="search-results"
             aria-activedescendant={expanded ? `result-${sel}` : undefined}
-            placeholder="e.g. Dolo 650, Atorvastatin 10, Pan 40"
+            placeholder={PLACEHOLDER}
             maxLength={MAX}
             autoComplete="off"
             spellCheck={false}
@@ -175,12 +165,7 @@ export function SearchPage() {
             </button>
           )}
         </form>
-        {!split && (
-          <ul className="search-trust plain intro" style={{ "--i": 4 } as CSSProperties} aria-label="About the prices">
-            <li>Government Jan Aushadhi prices</li>
-            <li>No ads or tie-ups</li>
-          </ul>
-        )}
+        {!split && <SearchTrust />}
         {!split && <HomeStats />}
         {split && (
           <ResultsList

@@ -4,16 +4,25 @@ import type { ReactNode } from "react";
 import { AuthMenu } from "@/features/auth/AuthMenu";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { HomeLink } from "@/features/search/HomeLink";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 import { Splash } from "@/ui/Splash";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Nirog: cheaper exact substitutes for your medicines", template: "%s · Nirog" },
-  description:
-    "Find Jan Aushadhi and branded medicines with the same salts, strength and form as yours, and see how much you can save.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: "%s · Nirog" },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_IN", title: SITE_TITLE, description: SITE_DESCRIPTION },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION },
+  formatDetection: { telephone: false },
+  // Set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION to the token Search Console gives for the meta-tag method.
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && {
+    verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
+  }),
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0f7a55" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
