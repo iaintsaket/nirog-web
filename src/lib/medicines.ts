@@ -71,13 +71,21 @@ const firstFit = (tries: string[], max: number) => tries.find((t) => t.length <=
 
 /**
  * Search-result title, e.g. "Paracetamol 650mg tablet: 889 options from ₹0.31 each". Long
- * combination medicines drop the count, then the price, rather than being cut off mid-word.
+ * combination medicines drop the count, then shorten the name at a word; the price stays, as it
+ * is what tells apart variants whose names differ only near the end.
  */
 export function title(page: MedicinePage): string {
   const c = cheapest(page);
   const from = `from ${rupees(c.unit_price_millipaise / 1000)}${c.pack_unit === "unit" ? " each" : `/${c.pack_unit}`}`;
   const h = heading(page);
-  return firstFit([`${h}: ${page.comparison.total_offers} options ${from}`, `${h}: ${from}`, h], TITLE_ROOM);
+  const short = `${cutAtWord(h, TITLE_ROOM - from.length - 2)}: ${from}`;
+  return firstFit([`${h}: ${page.comparison.total_offers} options ${from}`, `${h}: ${from}`, short], TITLE_ROOM);
+}
+
+/** `s` in at most `max` characters, ending at a whole word with "…" when it had to be shortened. */
+function cutAtWord(s: string, max: number): string {
+  if (s.length <= max) return s;
+  return `${s.slice(0, max - 1).replace(/\s+\S*$/, "").replace(/[\s+,]+$/, "")}…`;
 }
 
 /** "13 Nov 2026" from "2026-11-13"; empty when unknown. */
@@ -103,7 +111,7 @@ export function description(page: MedicinePage, updatedOn: string | null): strin
   const counted = `${page.comparison.total_offers} options with the same salts, strength and form. ${cheapestIs}`;
   // Fewer brand names, then no date, before the snippet would be cut off; past that, end at a word.
   const best = firstFit([3, 2, 1].filter((k) => k <= n).map((k) => named(k) + asOfDate).concat(counted + asOfDate, counted), DESCRIPTION_MAX);
-  return best.length <= DESCRIPTION_MAX ? best : `${best.slice(0, DESCRIPTION_MAX - 1).replace(/\s+\S*$/, "")}…`;
+  return cutAtWord(best, DESCRIPTION_MAX);
 }
 
 /** A–Z index bucket for a slug: its first letter, or "0" for digits. */
