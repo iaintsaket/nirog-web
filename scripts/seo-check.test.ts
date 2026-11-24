@@ -61,3 +61,8 @@ test("seo check passes a correct site and names each broken rule with the page i
     "sitemap lists /gone, which has no page",
   ]);
 });
+
+test("seo check decodes each entity once, so '&amp;lt;' stays '&lt;' and two different titles stay different", () => {
+  const out = site({ "index.html": page("/", { title: "A &amp;lt;b" }), "x.html": page("/x", { title: "A &lt;b" }) }, ["/", "/x"]);
+  expect(checkSite(out)).toEqual([]);
+});
