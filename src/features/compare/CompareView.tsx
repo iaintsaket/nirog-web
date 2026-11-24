@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { formLabel, percent, rupees } from "@/lib/format";
+import { slugFor } from "@/lib/medicines";
 import { compareMatch } from "@/services/catalog";
 import { CloseMatches } from "./CloseMatches";
 import { CompareProvider } from "./CompareContext";
@@ -241,6 +242,13 @@ export function ComparisonView({ c, headingLevel = "h1", hideCard = false, live 
           Showing {c.offers.length} of {c.total_offers} exact substitute
           {c.total_offers === 1 ? "" : "s"}, cheapest first by price per unit. Same salts, strength,
           form and release type.
+          {/* Pre-built pages exist for every medicine with a substitute; they are the page itself when not live. */}
+          {live && c.total_offers > 1 && (
+            <>
+              {" "}
+              <a href={`/medicine/${slugFor(c.key)}`}>Medicine page →</a>
+            </>
+          )}
         </p>
         {active && (
           <p className="small filter-note">
