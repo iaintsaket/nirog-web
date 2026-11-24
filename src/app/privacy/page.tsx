@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Privacy" };
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "What personal data Nirog processes, why, and how to delete it, under India's Digital Personal Data Protection Act, 2023.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function Privacy() {
   return (
