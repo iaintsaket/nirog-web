@@ -55,10 +55,13 @@ test("titles and descriptions fit a search result, shedding detail for long comb
   };
   for (const p of [...sample.pages, long]) {
     const t = title(p);
-    expect(t.length + " · Nirog".length <= 70 || t === heading(p), t).toBe(true);
+    expect(t.length + " · Nirog".length, t).toBeLessThanOrEqual(70);
     expect(description(p, "2026-11-20").length, description(p, "2026-11-20")).toBeLessThanOrEqual(170);
   }
   expect(title(long)).toBe("Acarbose 50mg + Metformin 500mg tablet: from ₹0.31 each");
+  const huge = { ...long, comparison: { ...long.comparison, offers: [{ ...offer, offer: { ...offer.offer, salts_label: "Diclofenac Diethylamine 1.16% + Linseed Oil 3% + Menthol 5% + Methyl Salicylate 10%" } }] } };
+  // Too long for any title: the name is shortened at a word, and the price that tells variants apart stays.
+  expect(title(huge)).toBe("Diclofenac Diethylamine 1.16% + Linseed Oil…: from ₹0.31 each");
   expect(description(long, "2026-11-20")).toMatch(/^889 options with the same salts, strength and form\. Cheapest is A Very Long/);
 });
 
