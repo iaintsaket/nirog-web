@@ -264,8 +264,9 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
     transition: transform .45s var(--ease), visibility 0s .45s;
   }
   .sheet-open .search-right { transform: none; pointer-events: auto; visibility: visible; transition: transform .45s var(--ease); }
+  /* Spans the sheet edge to edge (cancelling its 16px padding) and stays above the cards' entrance layers. */
   .sheet-bar { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0;
-    background: var(--bg); padding: 10px 0; z-index: 1; }
+    margin: 0 -16px; padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); z-index: 5; }
   .sheet-grab { width: 44px; height: 5px; border-radius: 3px; background: var(--border); margin-left: calc(50% - 22px); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -293,7 +294,8 @@ body:has(.search-shell) .site-header { background: color-mix(in srgb, var(--surf
 @media (max-width: 560px) { .search-trust { flex-direction: column; align-items: center; } }
 .search-trust li::before { content: "✓"; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
   background: var(--accent-soft); color: var(--accent-strong); font-size: .7rem; font-weight: 700; }
-.is-split .search-right { background: color-mix(in srgb, var(--bg) 35%, transparent); }
+/* Desktop only: the prices panel lets the home art show through. On phones it is a solid sheet. */
+@media (min-width: 761px) { .is-split .search-right { background: color-mix(in srgb, var(--bg) 35%, transparent); } }
 @media (max-width: 760px) { .hero-art { width: 140px; height: 117px; } }
 
 /* Picked medicine: details first, the price comparison right below. */
