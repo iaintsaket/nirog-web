@@ -58,6 +58,24 @@ export function AboutCarousel() {
     go(to);
   };
 
+  // Mouse drag; touch and pen already scroll the row natively.
+  const drag = useRef<{ x: number; from: number } | null>(null);
+  const dragStart = (e: React.PointerEvent<HTMLElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0 || !track.current) return;
+    drag.current = { x: e.clientX, from: track.current.scrollLeft };
+    track.current.classList.add("dragging");
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const dragMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (drag.current && track.current) track.current.scrollLeft = drag.current.from - (e.clientX - drag.current.x);
+  };
+  const dragEnd = () => {
+    if (!drag.current || !track.current) return;
+    drag.current = null;
+    track.current.classList.remove("dragging");
+    go(Math.round(track.current.scrollLeft / step()));
+  };
+
   const tilt = (e: React.PointerEvent<HTMLElement>) => {
     if (e.pointerType !== "mouse" || prefersStill()) return;
     const r = e.currentTarget.getBoundingClientRect();
@@ -76,7 +94,8 @@ export function AboutCarousel() {
       <noscript>
         <style>{".about-controls{display:none}"}</style>
       </noscript>
-      <div className="about-track" data-track ref={track} tabIndex={0} onScroll={onScroll} onKeyDown={onKey} aria-label="Cards, use the arrow keys to move">
+      <div className="about-track" data-track ref={track} tabIndex={0} onScroll={onScroll} onKeyDown={onKey}
+        onPointerDown={dragStart} onPointerMove={dragMove} onPointerUp={dragEnd} onPointerCancel={dragEnd} aria-label="Cards, use the arrow keys to move">
         {CARDS.map((card, i) => (
           <article
             key={card.title}
