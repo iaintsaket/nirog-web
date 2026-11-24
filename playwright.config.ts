@@ -11,7 +11,7 @@ const live = process.env.LIVE_URL;
 export default defineConfig({
   testDir: "e2e",
   timeout: 45_000,
-  retries: process.env.CI ? 1 : 0,
+  retries: 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: { baseURL: live ?? "http://localhost:4173", trace: "retain-on-failure" },
   projects: [
