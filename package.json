@@ -10,7 +10,9 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "gen:api": "openapi-typescript ${OPENAPI_SPEC:-../nirog-api/openapi.json} -o src/api/schema.d.ts"
+    "gen:api": "openapi-typescript ${OPENAPI_SPEC:-../nirog-api/openapi.json} -o src/api/schema.d.ts",
+    "test:e2e": "playwright test",
+    "test:live": "LIVE_URL=https://nirog.pages.dev playwright test"
   },
   "dependencies": {
     "next": "^16.4.6",
@@ -19,6 +21,7 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.0",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.13",

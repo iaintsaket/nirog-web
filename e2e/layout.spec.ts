@@ -1,0 +1,82 @@
+import { LIVE, expect, expectTidyPage, pickMedicine, snap, test } from "./fixtures";
+
+const isPhone = (w: number) => w <= 760;
+
+test("home: renders the search and live figures, tidy at this size", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("searchbox").or(page.getByRole("combobox")).first()).toBeVisible();
+  await expect(page.getByText(/Prices updated/)).toBeVisible({ timeout: 20_000 });
+  await expectTidyPage(page);
+  await snap(page, "home");
+});
+
+test("search: results list, tidy", async ({ page }) => {
+  await page.goto(`/?q=${encodeURIComponent("d pan dsr")}`);
+  await expect(page.locator(".result").first()).toBeVisible({ timeout: 20_000 });
+  await expectTidyPage(page);
+  await snap(page, "search results");
+});
+
+test("prices: open from a picked medicine and close again", async ({ page, viewport }) => {
+  await pickMedicine(page);
+  const sheet = page.locator(".search-right");
+  await snap(page, "prices open");
+
+  if (!isPhone(viewport!.width)) {
+    // Desktop: prices sit beside the list, not over it.
+    const left = await page.locator(".search-left").boundingBox();
+    const right = (await sheet.boundingBox())!;
+    expect(right.x, "prices panel beside the list").toBeGreaterThanOrEqual(left!.x + left!.width - 2);
+    await expectTidyPage(page);
+    return;
+  }
+
+  // Phone: a solid bottom sheet whose bar spans it edge to edge.
+  await expect(page.locator(".sheet-open")).toHaveCount(1);
+  const look = await page.evaluate(() => {
+    const s = document.querySelector(".search-right")!;
+    const bar = document.querySelector(".sheet-bar")!;
+    return {
+      bg: getComputedStyle(s).backgroundColor,
+      barBg: getComputedStyle(bar).backgroundColor,
+      sheetW: s.getBoundingClientRect().width,
+      barW: bar.getBoundingClientRect().width,
+    };
+  });
+  for (const [what, c] of [["sheet", look.bg], ["sheet bar", look.barBg]]) {
+    // Handles rgb(), rgba() and color(srgb r g b / a); no alpha means fully solid.
+    const m = /\/\s*([\d.]+)\s*\)$/.exec(c) ?? /rgba\([^)]*,\s*([\d.]+)\)$/.exec(c);
+    expect(m ? Number(m[1]) : 1, `${what} background is see-through (${c})`).toBe(1);
+  }
+  expect(Math.abs(look.sheetW - look.barW), "sheet bar spans the sheet").toBeLessThanOrEqual(1);
+
+  // Drag the bar down to close.
+  const bar = (await page.locator(".sheet-bar").boundingBox())!;
+  await page.mouse.move(bar.x + 40, bar.y + bar.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bar.x + 40, bar.y + 220, { steps: 10 });
+  await page.mouse.up();
+  await expect(page.locator(".sheet-open")).toHaveCount(0);
+
+  // Open again and use the Close button.
+  await page.locator(".result").first().click();
+  await expect(page.locator(".sheet-open")).toHaveCount(1);
+  await page.locator(".sheet-bar").getByRole("button", { name: "Close" }).click();
+  await expect(page.locator(".sheet-open")).toHaveCount(0);
+  await expectTidyPage(page);
+});
+
+test("privacy: renders, tidy", async ({ page }) => {
+  await page.goto("/privacy");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expectTidyPage(page);
+  await snap(page, "privacy");
+});
+
+test.describe("live only", () => {
+  test.skip(!LIVE, "needs the live API");
+  test("the API refuses calls that skip the website's proxy", async ({ request }) => {
+    const res = await request.get("https://nirog-api-1037492431911.asia-southeast1.run.app/v1/search?q=dolo");
+    expect(res.status()).toBe(403);
+  });
+});

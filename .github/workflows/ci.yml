@@ -45,10 +45,32 @@ jobs:
           docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 \
             git /repo --redact --verbose --exit-code 1
 
+  look:
+    name: look and layout (phone + desktop)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Checks on iPhone Safari engine, Android Chrome and desktop Chrome (API answers from e2e/fixtures)
+        run: npm run test:e2e
+      - name: Screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: look-and-layout-report
+          path: playwright-report/
+          retention-days: 14
+
   ci:
     name: ci
     if: always()
-    needs: [web, secrets]
+    needs: [web, secrets, look]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed

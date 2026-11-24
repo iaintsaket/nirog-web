@@ -45,3 +45,15 @@ jobs:
             echo "$path -> $code"
             [ "$code" = 200 ] || exit 1
           done
+      - name: Look and layout checks on the live site
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium webkit
+          npm run test:live
+      - name: Live screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-look-and-layout-report
+          path: playwright-report/
+          retention-days: 30

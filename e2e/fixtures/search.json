@@ -1,0 +1,23 @@
+{
+ "groups": [
+  {
+   "key": "capsule|standard|domperidone:30mg+pantoprazole:40mg|unit",
+   "salts_label": "Domperidone 30mg + Pantoprazole 40mg",
+   "matched": [
+    {
+     "id": "onemg:a658b0041903bc00",
+     "source": "brand",
+     "name": "Samplebrand 2 DSR Capsule",
+     "manufacturer": "Example Pharma 2",
+     "price_paise": 9188,
+     "pack_count": 10,
+     "pack_unit": "unit",
+     "unit_price_millipaise": 918800,
+     "salts_label": "Domperidone 30mg + Pantoprazole 40mg"
+    }
+   ]
+  }
+ ],
+ "did_you_mean": [],
+ "same_salt_as": null
+}
