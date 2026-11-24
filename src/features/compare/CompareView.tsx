@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { formLabel, percent, rupees } from "@/lib/format";
@@ -104,9 +104,14 @@ type ViewProps = {
 export function ComparisonView({ c, headingLevel = "h1", hideCard = false, live = true }: ViewProps) {
   const [filter, setFilter] = useState<string | null>(null);
   const [dearestFirst, setDearestFirst] = useState(false);
-  const { user } = useAuth();
+  const { user, opened } = useAuth();
   const cheapest = c.offers[0]?.offer;
   const base = c.searched_index != null ? c.offers[c.searched_index]?.offer : undefined;
+  const recentLabel = (base?.name ?? cheapest?.name ?? "").slice(0, 120);
+  // Signed-in users get this medicine in their "Recent" list (the provider skips signed-out users).
+  useEffect(() => {
+    if (user) opened(c.key, recentLabel, base?.id);
+  }, [user, opened, c.key, recentLabel, base?.id]);
   const available = QUICK_FILTERS.flatMap((f) => {
     const offer = f.pick(c);
     return offer ? [{ f, offer }] : [];

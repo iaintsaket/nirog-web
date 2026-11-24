@@ -255,7 +255,7 @@ test("search: a brand we have no price for leads to medicines with its salt; the
 
 test("compare: shows the saving and badges (shop links only in the comparison); signed-in users can save", async () => {
   const key = "tablet|standard|atorvastatin:10mg|unit";
-  const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison({ key }), "POST /v1/saved": { id: "s1" } });
+  const calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison({ key }), "POST /v1/saved": { id: "s1" }, "POST /v1/me/recent": 204 });
   nav.params = new URLSearchParams(`key=${encodeURIComponent(key)}&searched=b1`);
   withAuth(<ComparePage />);
 
@@ -285,7 +285,7 @@ test("compare: shows the saving and badges (shop links only in the comparison); 
 
   await userEvent.click(await screen.findByRole("button", { name: "Save" }));
   expect(await screen.findByText(/Saved\./)).toBeInTheDocument();
-  const post = calls.find((c) => c.method === "POST")!;
+  const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/v1/saved"))!;
   expect(await post.json()).toEqual({ key, label: "Lipitor 10 Tablet", offer_id: "b1" });
 });
 
@@ -524,6 +524,64 @@ test("account menu: without a picture it shows the first letter instead", async 
   const toggle = await screen.findByRole("button", { name: /account menu/i });
   expect(toggle.querySelector("img")).toBeNull();
   expect(toggle.querySelector(".avatar")).toHaveTextContent("A");
+});
+
+const recentItem = (key: string, label: string, offer_id: string | null = null) => ({
+  key,
+  label,
+  offer_id,
+  opened_at: "2026-11-25T10:00:00Z",
+});
+
+test("recent: opening a comparison records it once; the newest one is not sent again", async () => {
+  const key = "tablet|standard|atorvastatin:10mg|unit";
+  const posts = () => calls.filter((c) => c.method === "POST" && c.url.endsWith("/v1/me/recent"));
+  let calls = mockApi({ "GET /v1/me": user, "GET /v1/compare": comparison({ key }), "POST /v1/me/recent": 204 });
+  nav.params = new URLSearchParams(`key=${encodeURIComponent(key)}&searched=b1`);
+  const { unmount } = withAuth(<ComparePage />);
+  await waitFor(() => expect(posts()).toHaveLength(1));
+  expect(await posts()[0].json()).toEqual({ key, label: "Lipitor 10 Tablet", offer_id: "b1" });
+  unmount();
+
+  calls = mockApi({
+    "GET /v1/me": { ...user, recent: [recentItem(key, "Lipitor 10 Tablet", "b1")] },
+    "GET /v1/compare": comparison({ key }),
+    "POST /v1/me/recent": 204,
+  });
+  withAuth(<ComparePage />);
+  await screen.findByRole("list", { name: "Substitutes, cheapest first" });
+  await act(() => new Promise((r) => setTimeout(r, 20)));
+  expect(posts()).toHaveLength(0);
+});
+
+test("recent: chips under the home search and in the account menu; Clear removes them", async () => {
+  const calls = mockApi({
+    "GET /v1/me": {
+      ...user,
+      recent: [recentItem("k|2", "Dolo 650", "b2"), recentItem("k|1", "Lipitor 10 Tablet")],
+    },
+    "DELETE /v1/me/recent": 204,
+  });
+  withAuth(<><AuthMenu /><SearchPage /></>);
+
+  const chips = await screen.findByRole("list", { name: "Recently opened medicines" });
+  const links = within(chips).getAllByRole("link");
+  expect(links.map((a) => a.textContent)).toEqual(["Dolo 650", "Lipitor 10 Tablet"]);
+  expect(links[0]).toHaveAttribute("href", "/compare?key=k%7C2&searched=b2");
+
+  await userEvent.click(screen.getByRole("button", { name: /account menu/i }));
+  const menu = screen.getByRole("menu");
+  expect(within(menu).getAllByRole("menuitem").map((m) => m.textContent)).toEqual([
+    "Saved",
+    "Dolo 650",
+    "Lipitor 10 Tablet",
+    "Sign out",
+  ]);
+  await userEvent.keyboard("{Escape}");
+
+  await userEvent.click(screen.getByRole("button", { name: "Clear recent medicines" }));
+  await waitFor(() => expect(screen.queryByRole("list", { name: "Recently opened medicines" })).toBeNull());
+  expect(calls.some((c) => c.method === "DELETE" && c.url.endsWith("/v1/me/recent"))).toBe(true);
 });
 
 test("sign-in: shows the Google button, a failure notice, or the signed-in user", async () => {

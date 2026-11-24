@@ -10,6 +10,7 @@ import { searchMedicines } from "@/services/catalog";
 import { BackdropArt } from "./BackdropArt";
 import { Divider, useSplit } from "./Divider";
 import { HomeStats } from "./HomeStats";
+import { RecentChips } from "./RecentChips";
 import { PLACEHOLDER, SearchHero, SearchTrust } from "./Intro";
 import { ErrorNotice } from "@/ui/ErrorNotice";
 import { Loading } from "@/ui/Pulse";
@@ -161,6 +162,7 @@ export function SearchPage() {
             </button>
           )}
         </form>
+        {!split && <RecentChips />}
         {!split && <SearchTrust />}
         {!split && <HomeStats />}
         {split && (
