@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { prefersStill } from "./motion";
 import { Pulse } from "./Pulse";
 
 /** How long the loader beats before flying to the header, and how long the flight takes. */
@@ -20,8 +21,7 @@ export function Splash() {
     const el = root.current;
     const mark = el?.querySelector<HTMLElement>(".pulse");
     const target = document.querySelector<HTMLElement>(".brand .pulse");
-    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    if (!el || !mark || !target || still || typeof mark.animate !== "function") {
+    if (!el || !mark || !target || prefersStill() || typeof mark.animate !== "function") {
       setGone(true);
       return;
     }

@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { lineUp } from "@/ui/motion";
 
 /**
  * Paper-cutout decorations for the empty home screen: a stethoscope on the right and a tilted
@@ -7,7 +7,7 @@ import type { CSSProperties } from "react";
 export function BackdropArt() {
   return (
     <div className="backdrop-art" aria-hidden="true">
-      <svg className="cutout cutout-steth intro" style={{ "--i": 2 } as CSSProperties} viewBox="0 0 240 320">
+      <svg className="cutout cutout-steth intro" style={lineUp(2)} viewBox="0 0 240 320">
         <g fill="none" stroke="var(--surface)" strokeWidth="13" strokeLinecap="round">
           <path d="M70 26 C58 84 66 122 110 142" />
           <path d="M150 26 C162 84 154 122 110 142" />
@@ -20,7 +20,7 @@ export function BackdropArt() {
         </g>
         <circle cx="176" cy="236" r="14" fill="var(--accent-soft)" />
       </svg>
-      <svg className="cutout cutout-strip intro" style={{ "--i": 4 } as CSSProperties} viewBox="0 0 270 124">
+      <svg className="cutout cutout-strip intro" style={lineUp(4)} viewBox="0 0 270 124">
         <rect x="2" y="2" width="266" height="120" rx="16" fill="var(--surface)" />
         <line x1="20" y1="62" x2="250" y2="62" stroke="var(--border)" strokeWidth="2" strokeDasharray="6 6" />
         {[0, 1, 2, 3, 4].flatMap((c) =>

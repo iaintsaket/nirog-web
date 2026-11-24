@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import type { Stats } from "@/api/client";
+import { asOf } from "@/lib/medicines";
 import { catalogStats } from "@/services/catalog";
+import { useResult } from "@/services/useResult";
+import { lineUp, prefersStill } from "@/ui/motion";
 
 const count = new Intl.NumberFormat("en-IN");
-const day = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const COUNT_UP_MS = 1100;
 /** On hover a figure re-counts only its last stretch, quickly. */
 const HOVER_FROM = 0.97;
@@ -23,10 +25,6 @@ const CARDS: { label: string; value: (s: Stats) => number; show: (n: number) => 
   { label: "Have a cheaper exact substitute", value: (s) => s.with_cheaper_substitute, show: (n) => count.format(n) },
   { label: "Typical saving", value: (s) => Math.floor(s.median_saving_bps / 100), show: (n) => `${n}%` },
 ];
-
-function prefersStill(): boolean {
-  return typeof window.matchMedia !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
 
 /**
  * Counts from 0 to 1 over COUNT_UP_MS, eased, and again each time `run` changes.
@@ -59,17 +57,10 @@ function useProgress(run: number, ms: number, delayMs: number): number {
 
 /** Live figures about our prices for the empty search screen. Shows nothing if they fail to load. */
 export function HomeStats() {
-  /** undefined while loading, null if it failed. */
-  const [stats, setStats] = useState<Stats | null | undefined>(undefined);
-  useEffect(() => {
-    let live = true;
-    catalogStats().then((r) => live && setStats(r.ok ? r.data : null));
-    return () => {
-      live = false;
-    };
-  }, []);
-  if (stats === undefined) return <StatsSkeleton />;
-  if (!stats) return null;
+  const r = useResult(catalogStats, []);
+  if (!r) return <StatsSkeleton />;
+  if (!r.ok) return null;
+  const stats = r.data;
   return (
     <section className="home-stats" aria-label="Our prices in numbers">
       <dl className="home-stats-grid">
@@ -78,8 +69,8 @@ export function HomeStats() {
         ))}
       </dl>
       {stats.prices_updated_on && (
-        <p className="small muted home-stats-date intro" style={{ "--i": FIRST_CARD_ORDER + CARDS.length } as CSSProperties}>
-          Prices updated {day.format(new Date(`${stats.prices_updated_on}T00:00:00Z`))}
+        <p className="small muted home-stats-date intro" style={lineUp(FIRST_CARD_ORDER + CARDS.length)}>
+          Prices updated {asOf(stats.prices_updated_on)}
         </p>
       )}
     </section>
@@ -93,7 +84,7 @@ function StatCard({ label, order, text }: { label: string; order: number; text: 
   const p = useProgress(run, hovered ? HOVER_MS : COUNT_UP_MS, hovered ? 0 : INTRO_MS + order * STEP_MS);
   const shown = hovered ? HOVER_FROM + (1 - HOVER_FROM) * p : p;
   return (
-    <div className="home-stat intro" style={{ "--i": order } as CSSProperties} onMouseEnter={() => setRun((n) => n + 1)}>
+    <div className="home-stat intro" style={lineUp(order)} onMouseEnter={() => setRun((n) => n + 1)}>
       <dt>{label}</dt>
       <dd>{text(shown)}</dd>
     </div>

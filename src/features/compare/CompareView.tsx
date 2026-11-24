@@ -1,25 +1,20 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useState } from "react";
 import type { Comparison, Offer } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { formLabel, percent, rupees } from "@/lib/format";
 import { slugFor } from "@/lib/medicines";
 import { compareMatch } from "@/services/catalog";
+import { useResult } from "@/services/useResult";
+import { ErrorNotice } from "@/ui/ErrorNotice";
 import { CloseMatches } from "./CloseMatches";
 import { CompareProvider } from "./CompareContext";
 import { MedicineTile } from "./MedicineTile";
 import { MedicineCard } from "./MedicineCard";
 import { SaveButton } from "./SaveButton";
 import { Loading } from "@/ui/Pulse";
-
-type State =
-  | { kind: "loading" }
-  | { kind: "done"; data: Comparison }
-  | { kind: "error"; message: string };
-
-/** Place in the entrance line-up: cards land one after another. */
-const order = (i: number) => ({ "--i": i }) as CSSProperties;
+import { lineUp } from "@/ui/motion";
 
 type Row = { offer: Offer; index: number };
 
@@ -91,31 +86,10 @@ type Props = {
 
 /** Every exact substitute for one match key, cheapest first, with the saving and buy links. */
 export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard = false }: Props) {
-  const [state, setState] = useState<State>({ kind: "loading" });
-
-  useEffect(() => {
-    let live = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- loading state for a new key
-    setState({ kind: "loading" });
-    compareMatch(matchKey, searched).then((r) => {
-      if (!live) return;
-      setState(r.ok ? { kind: "done", data: r.data } : { kind: "error", message: r.message });
-    });
-    return () => {
-      live = false;
-    };
-  }, [matchKey, searched]);
-
-  if (state.kind === "loading") return <Loading>Finding cheaper substitutes…</Loading>;
-  if (state.kind === "error") {
-    return (
-      <p role="alert" className="notice notice-error">
-        {state.message}
-      </p>
-    );
-  }
-
-  return <ComparisonView key={state.data.key} c={state.data} headingLevel={headingLevel} hideCard={hideCard} />;
+  const r = useResult(() => compareMatch(matchKey, searched), [matchKey, searched]);
+  if (!r) return <Loading>Finding cheaper substitutes…</Loading>;
+  if (!r.ok) return <ErrorNotice>{r.message}</ErrorNotice>;
+  return <ComparisonView key={r.data.key} c={r.data} headingLevel={headingLevel} hideCard={hideCard} />;
 }
 
 type ViewProps = {
@@ -218,7 +192,7 @@ export function ComparisonView({ c, headingLevel = "h1", hideCard = false, live 
               key={f.id}
               type="button"
               className={`stat card-in${f.best ? " stat-best" : ""}`}
-              style={order(1 + n)}
+              style={lineUp(1 + n)}
               aria-pressed={filter === f.id}
               onClick={() => setFilter((cur) => (cur === f.id ? null : f.id))}
             >
@@ -229,7 +203,7 @@ export function ComparisonView({ c, headingLevel = "h1", hideCard = false, live 
           ))}
         </div>
         {c.saving_per_pack_paise > 0 && cheapest && (
-          <p className="saving card-in" role="status" style={order(4)}>
+          <p className="saving card-in" role="status" style={lineUp(4)}>
             Save up to <strong>{rupees(c.saving_per_pack_paise)}</strong> per pack (
             {percent(c.saving_bps)}){base ? <> compared with {base.name}</> : null} by choosing{" "}
             <strong>{cheapest.name}</strong>.
