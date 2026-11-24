@@ -38,6 +38,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <a href="https://github.com/iaintsaket/nirog-web" rel="noopener noreferrer">
                 Source
               </a>
+              {process.env.NEXT_PUBLIC_VERSION && (
+                <a href="https://github.com/iaintsaket/nirog-web/releases" rel="noopener noreferrer" title="Running version">
+                  {process.env.NEXT_PUBLIC_VERSION}
+                </a>
+              )}
             </div>
           </footer>
         </AuthProvider>

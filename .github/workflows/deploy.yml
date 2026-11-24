@@ -77,6 +77,7 @@ jobs:
             echo "$path -> $code"
             [ "$code" = 200 ] || exit 1
           done
+          deploy/expect-live-version.sh "$VERSION"
       - name: Look and layout checks on the live site
         run: |
           npm ci

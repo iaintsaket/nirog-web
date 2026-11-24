@@ -7,7 +7,11 @@
 set -euo pipefail
 project="${1:-nirog}"
 cd "$(dirname "$0")/.."
+label="${VERSION:-manual $(git rev-parse --short HEAD)}"
 npm ci
-npm run build
+# The version is baked into the build: the footer shows it and /version.json reports it, so a
+# rollback to an older build reports that build's own version.
+NEXT_PUBLIC_VERSION="$label" npm run build
+printf '{"version":"%s","commit":"%s"}\n' "$label" "$(git rev-parse HEAD)" > out/version.json
 npx --yes wrangler@4.167.0 pages deploy out --project-name "$project" --branch main \
-  --commit-hash "$(git rev-parse HEAD)" --commit-message "${VERSION:-manual $(git rev-parse --short HEAD)}"
+  --commit-hash "$(git rev-parse HEAD)" --commit-message "$label"

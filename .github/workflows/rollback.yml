@@ -11,7 +11,7 @@ concurrency:
   group: deploy-pages # never overlaps a deploy
   cancel-in-progress: false
 permissions:
-  contents: read
+  contents: write # move the "Latest" badge to the release that is live
 
 jobs:
   rollback:
@@ -38,3 +38,19 @@ jobs:
             echo "$path -> $code"
             [ "$code" = 200 ] || exit 1
           done
+          deploy/expect-live-version.sh "$VERSION"
+        env:
+          VERSION: ${{ inputs.version }}
+      - name: Mark ${{ inputs.version }} as the live release on GitHub
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          was=$(gh release view --json tagName --jq .tagName)
+          gh release edit "$VERSION" --latest
+          if [ "$was" != "$VERSION" ]; then
+            body="$(gh release view "$was" --json body --jq .body)"
+            gh release edit "$was" --notes "↩️ Replaced on $(date -u +%F) by a rollback: $VERSION is live.
+
+          $body"
+          fi
