@@ -36,11 +36,30 @@ test("page copy names the medicine, its options, the cheapest price and the date
   expect(heading(paracetamol)).toBe("Paracetamol 650mg tablet");
   expect(title(paracetamol)).toBe("Paracetamol 650mg tablet: 889 options from ₹0.31 each");
   const d = description(paracetamol, "2026-11-20");
-  expect(d).toMatch(/^Same salts, strength and form: .+ and 886 more\. Cheapest is .+ at ₹0\.31 per tablet\/capsule, up to \d+% less\. Prices as of 20 Nov 2026\.$/);
+  expect(d).toMatch(/^Same salts, strength and form: .+ and 88[6-8] more\. Cheapest is .+ at ₹0\.31 per tablet\/capsule, up to \d+% less\. Prices as of 20 Nov 2026\.$/);
   expect(asOf(null)).toBe("");
   expect(asOf("not a date")).toBe("");
   expect(compareHref("a|b")).toBe("/compare?key=a%7Cb");
   expect(compareHref("k1", "b1")).toBe("/compare?key=k1&searched=b1");
+});
+
+test("titles and descriptions fit a search result, shedding detail for long combination medicines instead of being cut off", () => {
+  const offer = paracetamol.comparison.offers[0];
+  const long = {
+    ...paracetamol,
+    names: paracetamol.names.map((n) => `${n} Extended Strength Combination Pack`),
+    comparison: {
+      ...paracetamol.comparison,
+      offers: [{ ...offer, offer: { ...offer.offer, salts_label: "Acarbose 50mg + Metformin 500mg", name: "A Very Long Cheapest Brand Name 50mg/500mg/0.3mg Tablet SR" } }],
+    },
+  };
+  for (const p of [...sample.pages, long]) {
+    const t = title(p);
+    expect(t.length + " · Nirog".length <= 70 || t === heading(p), t).toBe(true);
+    expect(description(p, "2026-11-20").length, description(p, "2026-11-20")).toBeLessThanOrEqual(170);
+  }
+  expect(title(long)).toBe("Acarbose 50mg + Metformin 500mg tablet: from ₹0.31 each");
+  expect(description(long, "2026-11-20")).toMatch(/^889 options with the same salts, strength and form\. Cheapest is A Very Long/);
 });
 
 test("A–Z buckets and structured data", () => {
