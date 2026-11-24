@@ -8,6 +8,7 @@ import { slugFor } from "@/lib/medicines";
 import { compareMatch } from "@/services/catalog";
 import { useResult } from "@/services/useResult";
 import { ErrorNotice } from "@/ui/ErrorNotice";
+import { Notice } from "@/ui/Notice";
 import { CloseMatches } from "./CloseMatches";
 import { CompareProvider } from "./CompareContext";
 import { MedicineTile } from "./MedicineTile";
@@ -88,6 +89,9 @@ type Props = {
 export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard = false }: Props) {
   const r = useResult(() => compareMatch(matchKey, searched), [matchKey, searched]);
   if (!r) return <Loading>Finding cheaper substitutes…</Loading>;
+  if (!r.ok && r.status === 404) {
+    return <Notice>We have no prices to compare for this medicine right now. Please search again.</Notice>;
+  }
   if (!r.ok) return <ErrorNotice>{r.message}</ErrorNotice>;
   return <ComparisonView key={r.data.key} c={r.data} headingLevel={headingLevel} hideCard={hideCard} />;
 }
