@@ -434,7 +434,10 @@ test("compare: already cheapest, save failure, and not found", async () => {
 
   mockApi({ ...signedOut, "GET /v1/compare": () => Response.json({ error: "not_found", message: "Not found" }, { status: 404 }) });
   withAuth(<ComparePage />);
-  expect(await screen.findByRole("alert")).toHaveTextContent("Not found");
+  // A missing comparison (prices updated since the link was made) is not an error.
+  expect(await screen.findByRole("status")).toHaveTextContent(/no prices to compare.*search again/i);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.queryByText("Not found")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
 });
 
