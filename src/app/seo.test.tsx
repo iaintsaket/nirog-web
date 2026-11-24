@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { SearchFallback } from "@/features/search/Intro";
-import { absolute, homeJsonLd, jsonLd } from "@/lib/site";
+import { aboutJsonLd, absolute, homeJsonLd, jsonLd } from "@/lib/site";
+import About, { metadata as aboutMeta } from "./about/page";
 import manifest from "./manifest";
 import robots from "./robots";
 import sitemap from "./sitemap";
@@ -52,4 +53,17 @@ test("the pre-rendered home has the real heading and a search that works without
   const form = screen.getByRole("search") as HTMLFormElement;
   expect([form.getAttribute("action"), form.method]).toEqual(["/", "get"]);
   expect((screen.getByLabelText("Medicine name or salt") as HTMLInputElement).name).toBe("q");
+});
+
+test("the about page names what Nirog does, has its own share preview, says it is an AboutPage, and has prose to index", () => {
+  const title = "About Nirog: compare medicine prices and generic substitutes in India";
+  expect(aboutMeta.title).toEqual({ absolute: title }); // the layout's " · Nirog" suffix would repeat the name
+  expect(aboutMeta.description).toMatch(/Jan Aushadhi/);
+  expect(aboutMeta.openGraph).toMatchObject({ url: "/about", title, description: aboutMeta.description });
+  expect(aboutMeta.twitter).toMatchObject({ title, description: aboutMeta.description });
+  const page = aboutJsonLd() as { "@type": string; url: string; about: { "@id": string } };
+  expect([page["@type"], page.url, page.about["@id"]]).toEqual(["AboutPage", absolute("/about"), absolute("/#org")]);
+  const { container } = render(<About />);
+  expect(container.querySelector('script[type="application/ld+json"]')?.innerHTML).toContain("AboutPage");
+  expect(screen.getByText(/exact substitutes/i, { selector: ".about-more p" })).toBeTruthy();
 });
