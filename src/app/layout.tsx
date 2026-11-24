@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { AboutMenu } from "@/features/about/AboutMenu";
+import { AboutLink } from "@/features/about/AboutLink";
 import { AuthMenu } from "@/features/auth/AuthMenu";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { HomeLink } from "@/features/search/HomeLink";
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div className="container header-row">
               <div className="header-left">
                 <HomeLink />
-                <AboutMenu />
+                <AboutLink />
               </div>
               <nav aria-label="Account">
                 <AuthMenu />

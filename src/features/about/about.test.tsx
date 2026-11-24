@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import sitemap from "@/app/sitemap";
 import { absolute } from "@/lib/site";
 import About from "@/app/about/page";
-import { AboutMenu } from "./AboutMenu";
+import { AboutLink } from "./AboutLink";
 
 const scrollTo = vi.fn();
 
@@ -85,30 +85,10 @@ test("about: scrolling shifts each card's art (parallax); it stays still for peo
   expect(cardAt(0).style.getPropertyValue("--p")).toBe("");
 });
 
-test("about menu: opens beside the logo with Our mission and About us; Escape, an outside click or a choice closes it", async () => {
-  render(
-    <>
-      <AboutMenu />
-      <p>elsewhere</p>
-    </>,
-  );
-  const toggle = screen.getByRole("button", { name: "About" });
-  expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await userEvent.click(toggle);
-  expect(toggle).toHaveAttribute("aria-expanded", "true");
-  expect(screen.getByRole("menuitem", { name: "Our mission" })).toHaveAttribute("href", "/about#mission");
-  expect(screen.getByRole("menuitem", { name: "About us" })).toHaveAttribute("href", "/about");
-
-  await userEvent.keyboard("{Escape}");
-  expect(screen.queryByRole("menu")).toBeNull();
-  expect(toggle).toHaveFocus();
-
-  await userEvent.click(toggle);
-  await userEvent.click(screen.getByText("elsewhere"));
-  expect(screen.queryByRole("menu")).toBeNull();
-
-  await userEvent.click(toggle);
-  await userEvent.click(screen.getByRole("menuitem", { name: "About us" }));
+test("about link: one About link beside the logo goes straight to the cards, with no dropdown", () => {
+  render(<AboutLink />);
+  expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+  expect(screen.queryByRole("button")).toBeNull();
   expect(screen.queryByRole("menu")).toBeNull();
 });
 
