@@ -52,9 +52,8 @@ Every medicine with at least one exact substitute (about 10,000) gets a static p
 `/medicine/<slug>`, listed A–Z at `/medicines/<letter>` and in `sitemap.xml`. The pages are built at
 deploy from the API's `GET /v1/pages`, so visitors and crawlers never call the API for them.
 
-- `node scripts/fetch-medicines.mjs <api origin>` writes `data/medicines.json` (git-ignored). The
-  deploy workflow caches it per price-import date, so it is fetched again only after an import.
-  Without it, builds use the small real sample in `e2e/fixtures/medicines.json`; the deploy refuses to.
+- `node scripts/fetch-medicines.mjs <api origin>` writes `data/medicines.json` (git-ignored). Every
+  deploy fetches it fresh (about 20 gzipped requests); it is deliberately not cached. Without it, builds use the small real sample in `e2e/fixtures/medicines.json`; the deploy refuses to.
 - `scripts/prune-export.mjs` runs after `next build`: it drops the per-medicine RSC files (links to
   these pages are plain `<a>`) and fails the build above 19,000 files (Cloudflare Pages allows 20,000).
 - Set `NEXT_PUBLIC_SITE_URL` when the site moves to its own domain, and

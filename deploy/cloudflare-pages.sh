@@ -9,9 +9,9 @@ project="${1:-nirog}"
 cd "$(dirname "$0")/.."
 label="${VERSION:-manual $(git rev-parse --short HEAD)}"
 npm ci
-# Medicine pages are built from the API's catalogue. Fetch it unless a fresh copy is already here
-# (the deploy workflow caches it per price import, so most deploys make no API calls for it).
-[ -s data/medicines.json ] || node scripts/fetch-medicines.mjs "${MEDICINES_API:-https://nirog.pages.dev}" data/medicines.json
+# Medicine pages are built from the API's catalogue: ~20 gzipped requests, ~2 s of DB time.
+# Fetched fresh every deploy; it is never restored from a cache, which could be poisoned.
+node scripts/fetch-medicines.mjs "${MEDICINES_API:-https://nirog.pages.dev}" data/medicines.json
 # The version is baked into the build: the footer shows it and /version.json reports it, so a
 # rollback to an older build reports that build's own version.
 MEDICINES_REQUIRED=1 NEXT_PUBLIC_VERSION="$label" npm run build

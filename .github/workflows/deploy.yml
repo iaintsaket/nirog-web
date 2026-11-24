@@ -44,16 +44,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # Medicine pages need the catalogue from the API. It only changes when prices are imported,
-      # so it is cached per import date: one tiny /v1/stats call per deploy, a full fetch
-      # (~20 requests) only after an import.
-      - name: Price import date
-        id: prices
-        run: echo "date=$(curl -sf https://nirog.pages.dev/v1/stats | jq -r '.prices_updated_on // "unknown"')" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v6
-        with:
-          path: data/medicines.json
-          key: medicines-v1-${{ steps.prices.outputs.date }}
       - name: Pick the version
         run: |
           last=$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
