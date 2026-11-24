@@ -19,7 +19,7 @@ export default function OpengraphImage() {
         </div>
         <div style={{ fontSize: 72, fontWeight: 700, marginTop: 48, lineHeight: 1.1 }}>Health for everyone, everywhere</div>
         <div style={{ fontSize: 34, marginTop: 28, color: "#5b675f" }}>
-          Same salts, strength and form, from any maker: where it's available, at a price you can manage.
+          Same salts, strength and form, from any maker: where it’s available, at a price you can manage.
         </div>
       </div>
     ),

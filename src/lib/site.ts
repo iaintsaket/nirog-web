@@ -6,7 +6,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://nirog.page
 export const SITE_NAME = "Nirog";
 export const SITE_TITLE = "Nirog: health for everyone, everywhere";
 export const SITE_DESCRIPTION =
-  "Find the exact medicine you need, with the same salts, strength and form, from Jan Aushadhi and other makers: where it's available and at a price you can manage.";
+  "Find the exact medicine you need, with the same salts, strength and form, from Jan Aushadhi and other makers: where it’s available and at a price you can manage.";
 
 /** Absolute URL for a site path, as canonical links, sitemaps and structured data need. */
 export function absolute(path = "/"): string {

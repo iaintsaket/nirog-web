@@ -15,7 +15,7 @@ export function SearchHero() {
         Health for everyone, everywhere
       </h1>
       <p className="lede intro" style={lineUp(2)}>
-        Find the exact medicine you need, with the same salts, strength and form, wherever it's available and at a price you can manage.
+        Find the exact medicine you need, with the same salts, strength and form, wherever it’s available and at a price you can manage.
       </p>
     </section>
   );
