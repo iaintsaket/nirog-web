@@ -100,13 +100,18 @@ function StatCard({ label, order, text }: { label: string; order: number; text: 
   );
 }
 
-/** Shimmering placeholders in the shape of the figures while they load. */
+/**
+ * Shimmering placeholders in the shape of the figures while they load. Same wrapper and grid as
+ * the figures: the wrapper is what the search column centres, and the grid zeroes its own margins.
+ */
 function StatsSkeleton() {
   return (
-    <div className="home-stats home-stats-grid" aria-busy="true" aria-label="Loading figures">
-      {CARDS.map((c) => (
-        <div key={c.label} className="home-stat skeleton" />
-      ))}
+    <div className="home-stats" aria-busy="true" aria-label="Loading figures">
+      <div className="home-stats-grid">
+        {CARDS.map((c) => (
+          <div key={c.label} className="home-stat skeleton" />
+        ))}
+      </div>
     </div>
   );
 }

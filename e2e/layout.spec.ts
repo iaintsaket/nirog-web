@@ -105,3 +105,29 @@ test("medicine page: pre-built comparison with no API calls, reachable from the 
   await snap(page, "medicine");
   expect(api.filter((u) => !u.endsWith("/v1/me"))).toEqual([]);
 });
+
+test("home: the figures' loading placeholder sits exactly where the figures land", async ({ page }) => {
+  test.skip(LIVE, "needs a slow /v1/stats");
+  const span = async (cards: import("@playwright/test").Locator) => {
+    const [a, b] = await Promise.all([cards.first().boundingBox(), cards.last().boundingBox()]);
+    return [Math.round(Math.min(a!.x, b!.x)), Math.round(Math.max(a!.x + a!.width, b!.x + b!.width))];
+  };
+  // Where the real figures land.
+  await page.goto("/");
+  const figures = page.getByRole("region", { name: "Our prices in numbers" }).locator(".home-stat");
+  await expect(figures.first()).toBeVisible({ timeout: 20_000 });
+  // Measure after the entrance animation (it scales cards up from 98%).
+  await figures.last().evaluate((e) => Promise.all(e.getAnimations().map((a) => a.finished)));
+  const landed = await span(figures);
+
+  // Database down: the figures take a while and then fail. The placeholder must not sit elsewhere.
+  await page.route("**/v1/stats", async (r) => {
+    await new Promise((done) => setTimeout(done, 3000));
+    await r.fulfill({ status: 503, json: { error: "unavailable", message: "Down." } });
+  });
+  await page.reload();
+  const placeholder = page.getByLabel("Loading figures");
+  await expect(placeholder).toBeVisible();
+  expect(await span(placeholder.locator(".home-stat"))).toEqual(landed);
+  await expect(placeholder).toBeHidden({ timeout: 6000 });
+});
