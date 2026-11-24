@@ -27,8 +27,19 @@ test("forwards to the API with the proxy secret and real client IP, dropping spo
   expect(new TextDecoder().decode(init.body as ArrayBuffer)).toBe('{"key":"k"}');
 });
 
+test("the core proxy trusts only the client IP its host adapter passes in", async () => {
+  const upstream = vi.fn(async () => new Response("{}"));
+  vi.stubGlobal("fetch", upstream);
+  const req = new Request("https://nirog.example/v1/health", { headers: { "cf-connecting-ip": "203.0.113.9" } });
+
+  await proxy(req, env, "198.51.100.7");
+
+  const [, init] = upstream.mock.calls[0] as unknown as [URL, RequestInit];
+  expect(new Headers(init.headers).get("x-nirog-client-ip")).toBe("198.51.100.7");
+});
+
 test("refuses when unconfigured or outside /v1", async () => {
   const req = new Request("https://nirog.pages.dev/v1/health");
-  expect((await proxy(req, { API_ORIGIN: "", PROXY_SECRET: "" })).status).toBe(503);
-  expect((await proxy(new Request("https://nirog.pages.dev/other"), env)).status).toBe(404);
+  expect((await proxy(req, { API_ORIGIN: "", PROXY_SECRET: "" }, "")).status).toBe(503);
+  expect((await proxy(new Request("https://nirog.pages.dev/other"), env, "")).status).toBe(404);
 });
