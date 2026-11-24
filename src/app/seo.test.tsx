@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { SearchFallback } from "@/features/search/Intro";
-import { aboutJsonLd, absolute, homeJsonLd, jsonLd } from "@/lib/site";
+import { aboutJsonLd, absolute, homeJsonLd, jsonLd, pageMeta } from "@/lib/site";
+import { metadata as privacyMeta } from "./privacy/page";
+import { metadata as homeMeta } from "./page";
 import About, { metadata as aboutMeta } from "./about/page";
 import manifest from "./manifest";
 import robots from "./robots";
@@ -66,4 +68,19 @@ test("the about page names what Nirog does, has its own share preview, says it i
   const { container } = render(<About />);
   expect(container.querySelector('script[type="application/ld+json"]')?.innerHTML).toContain("AboutPage");
   expect(screen.getByText(/exact substitutes/i, { selector: ".about-more p" })).toBeTruthy();
+});
+
+test("every indexable page gets its own canonical and full share tags, and a long title drops the site suffix instead of being cut off", () => {
+  const desc = "What personal data Nirog processes, why, and how to delete it.";
+  expect(pageMeta({ path: "/privacy", title: "Privacy", description: desc })).toEqual({
+    title: "Privacy",
+    description: desc,
+    alternates: { canonical: "/privacy" },
+    openGraph: { type: "website", siteName: "Nirog", locale: "en_IN", url: "/privacy", title: "Privacy · Nirog", description: desc },
+    twitter: { card: "summary_large_image", title: "Privacy · Nirog", description: desc },
+  });
+  const long = "x".repeat(63); // 63 + " · Nirog" is over 70
+  expect(pageMeta({ path: "/a", title: long, description: desc }).title).toEqual({ absolute: long });
+  expect(pageMeta({ path: "/a", title: "y".repeat(90), description: desc }).title).toEqual({ absolute: `${"y".repeat(69)}…` });
+  expect([homeMeta, privacyMeta].map((m) => (m.openGraph as { url?: string }).url)).toEqual(["/", "/privacy"]);
 });

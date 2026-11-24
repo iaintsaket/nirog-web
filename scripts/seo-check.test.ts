@@ -31,7 +31,7 @@ function site(pages: Record<string, string>, sitemap: string[]) {
 
 test("seo check passes a correct site and names each broken rule with the page it is on", () => {
   const good = site(
-    { "index.html": page("/"), "about.html": page("/about"), "saved.html": page("/saved", { noindex: true }), "404.html": "<html></html>" },
+    { "index.html": page("/", { canonical: SITE, ogUrl: SITE }), "about.html": page("/about"), "saved.html": page("/saved", { noindex: true }), "404.html": "<html></html>" },
     ["/", "/about"],
   );
   expect(checkSite(good)).toEqual([]);
