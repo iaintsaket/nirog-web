@@ -274,7 +274,7 @@ export interface components {
         MedicinePageDto: {
             /** @description The cheapest 20 offers; the saving is against the costliest of all of them. */
             comparison: components["schemas"]["ComparisonResponse"];
-            /** @description Distinct names of every offer with this key, cheapest first (at most 100). */
+            /** @description Distinct names of every offer with this key, cheapest first (at most 1,000). */
             names: string[];
         };
         OfferDto: {
