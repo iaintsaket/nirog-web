@@ -66,13 +66,15 @@ export function checkSite(out) {
 
     if (!title) say("no <title>");
     else if (title.length > TITLE_MAX) say(`title is ${title.length} characters, want at most ${TITLE_MAX}`);
+    // URL() makes "https://site" and "https://site/" the same, as Next writes the home canonical without the slash.
+    const same = (u) => { try { return new URL(u).href === new URL(want).href; } catch { return false; } };
     if (!canonical) say("no canonical link");
-    else if (canonical !== want) say(`canonical is ${canonical}, want ${want}`);
+    else if (!same(canonical)) say(`canonical is ${canonical}, want ${want}`);
     if (h1s !== 1) say(`${h1s} <h1> headings, want exactly 1`);
     if (!desc) say("no meta description");
     else if (desc.length < DESC[0] || desc.length > DESC[1]) say(`description is ${desc.length} characters, want ${DESC[0]}–${DESC[1]}`);
     if (!ogUrl) say("no og:url, so a shared link previews as the home page");
-    else if (ogUrl !== want) say(`og:url is ${ogUrl}, want ${want}`);
+    else if (!same(ogUrl)) say(`og:url is ${ogUrl}, want ${want}`);
     for (const [, body] of html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)) {
       try {
         JSON.parse(body);

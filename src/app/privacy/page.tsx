@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
+  path: "/privacy",
   title: "Privacy",
   description: "What personal data Nirog processes, why, and how to delete it, under India's Digital Personal Data Protection Act, 2023.",
-  alternates: { canonical: "/privacy" },
-};
+});
 
 export default function Privacy() {
   return (

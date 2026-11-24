@@ -1,19 +1,12 @@
 import type { Metadata } from "next";
 import { AboutCarousel } from "@/features/about/AboutCarousel";
-import { aboutJsonLd, jsonLd } from "@/lib/site";
+import { aboutJsonLd, jsonLd, pageMeta } from "@/lib/site";
 
 const title = "About Nirog: compare medicine prices and generic substitutes in India";
 const description =
   "Nirog compares prices of the same medicine across brands and Jan Aushadhi, with exact substitutes matched by salt, strength and form. Free, no ads, no trackers.";
 
-export const metadata: Metadata = {
-  // Absolute, so the layout's " · Nirog" suffix doesn't repeat the name.
-  title: { absolute: title },
-  description,
-  alternates: { canonical: "/about" },
-  openGraph: { title, description, url: "/about" },
-  twitter: { title, description },
-};
+export const metadata: Metadata = pageMeta({ path: "/about", title, description });
 
 export default function About() {
   return (
