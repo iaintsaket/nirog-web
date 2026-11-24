@@ -4,6 +4,8 @@ import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { BuyLink, Offer } from "@/api/client";
 import { packLabel, percent, rupees, sourceLabel, unitPriceLabel } from "@/lib/format";
+import { vendorRows } from "./vendors";
+import { WhereToBuy } from "./WhereToBuy";
 
 type Other = { offer: Offer; links: BuyLink[] };
 type Props = { mine: Offer; others: Other[]; form?: string; onClose: () => void };
@@ -107,22 +109,16 @@ export function CompareDialog({ mine, others, form, onClose }: Props) {
             );
           })}
         </ul>
-        {others.some((o) => o.links.length > 0) && (
-          <div className="stack-sm">
-            {others
-              .filter((o) => o.links.length > 0)
-              .map(({ offer, links }) => (
-                <div key={offer.id} className="rung-links">
-                  {others.length > 1 && <span className="small muted">{offer.name}:</span>}
-                  {links.map((l) => (
-                    <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="link-chip">
-                      {l.label} ↗
-                    </a>
-                  ))}
-                </div>
-              ))}
-          </div>
-        )}
+        {others
+          .filter((o) => o.links.length > 0)
+          .map(({ offer, links }) => (
+            <WhereToBuy
+              key={offer.id}
+              rows={vendorRows(links)}
+              name={others.length > 1 ? offer.name : undefined}
+              janAushadhi={offer.source === "jan_aushadhi"}
+            />
+          ))}
       </div>
     </div>,
     document.body,

@@ -1,4 +1,5 @@
 import { LIVE, expect, expectTidyPage, pickMedicine, snap, test } from "./fixtures";
+import compareFixture from "./fixtures/compare.json" with { type: "json" };
 
 const isPhone = (w: number) => w <= 760;
 
@@ -130,4 +131,41 @@ test("home: the figures' loading placeholder sits exactly where the figures land
   await expect(placeholder).toBeVisible();
   expect(await span(placeholder.locator(".home-stat"))).toEqual(landed);
   await expect(placeholder).toBeHidden({ timeout: 6000 });
+});
+
+test("where to buy: the comparison window lists each shop as a full-width row with a Buy button, tidy", async ({ page }) => {
+  test.skip(LIVE, "uses fixture buy links");
+  const body: { offers: { links: object[] }[] } = structuredClone(compareFixture);
+  const q = "Samplebrand";
+  body.offers[1].links = [
+    { kind: "online", label: "Tata 1mg", url: `https://www.1mg.com/search/all?name=${q}` },
+    { kind: "online", label: "PharmEasy", url: `https://pharmeasy.in/search/all?name=${q}` },
+    { kind: "online", label: "Netmeds", url: `https://www.netmeds.com/catalogsearch/result/${q}/all` },
+    { kind: "online", label: "Apollo Pharmacy", url: `https://www.apollopharmacy.in/search-medicines/${q}` },
+  ];
+  await page.route((u) => u.pathname === "/v1/compare", (r) => r.fulfill({ json: body }));
+  await pickMedicine(page);
+  await page.locator(".ladder li.rung-clickable").first().click();
+  const dialog = page.getByRole("dialog");
+  const section = dialog.getByRole("region", { name: /^Where to buy/ });
+  await expect(section.getByRole("listitem")).toHaveCount(4);
+  const buy = section.getByRole("link", { name: /^Buy on PharmEasy/ });
+  await expect(buy).toHaveAttribute("rel", "noopener noreferrer nofollow");
+
+  // Measure after the window's entrance animation (it scales up from 98%).
+  await dialog.evaluate((d) => Promise.all(d.getAnimations({ subtree: true }).map((a) => a.finished)));
+  // Every row spans the section, and its Buy button stays inside it.
+  const box = (await section.boundingBox())!;
+  for (const row of await section.getByRole("listitem").all()) {
+    const r = (await row.boundingBox())!;
+    expect(Math.abs(r.width - box.width), "row spans the section").toBeLessThanOrEqual(1);
+    const b = (await row.getByRole("link").boundingBox())!;
+    expect(b.x + b.width, "Buy button inside its row").toBeLessThanOrEqual(r.x + r.width + 1);
+    expect(b.height, "Buy button is a real tap target").toBeGreaterThanOrEqual(40);
+  }
+  const sideways = await dialog.evaluate((d) => d.scrollWidth - d.clientWidth);
+  expect(sideways, "comparison window scrolls sideways").toBeLessThanOrEqual(0);
+  await section.scrollIntoViewIfNeeded();
+  await test.info().attach("where to buy", { body: await section.screenshot(), contentType: "image/png" });
+  await test.info().attach("where to buy (window)", { body: await page.screenshot(), contentType: "image/png" });
 });
