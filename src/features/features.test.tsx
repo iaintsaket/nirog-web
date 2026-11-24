@@ -219,7 +219,7 @@ test("search: the home link brings back the empty search screen", async () => {
   expect(box).toHaveValue("dolo");
   await userEvent.click(screen.getByRole("link", { name: "Nirog home" }));
   expect(box).toHaveValue("");
-  expect(screen.getByRole("heading", { name: "Pay less for the same medicine" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Health for everyone, everywhere" })).toBeInTheDocument();
 });
 
 test("search: a brand we have no price for leads to medicines with its salt; the exact strength is marked", async () => {

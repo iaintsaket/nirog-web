@@ -4,9 +4,9 @@
  */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://nirog.pages.dev").replace(/\/+$/, "");
 export const SITE_NAME = "Nirog";
-export const SITE_TITLE = "Nirog: cheaper exact substitutes for your medicines";
+export const SITE_TITLE = "Nirog: health for everyone, everywhere";
 export const SITE_DESCRIPTION =
-  "Find Jan Aushadhi and branded medicines with the same salts, strength and form as yours, and see how much you can save.";
+  "Find the exact medicine you need, with the same salts, strength and form, from Jan Aushadhi and other makers: where it’s available and at a price you can manage.";
 
 /** Absolute URL for a site path, as canonical links, sitemaps and structured data need. */
 export function absolute(path = "/"): string {

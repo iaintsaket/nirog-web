@@ -2,8 +2,9 @@
 
 # nirog-web
 
-The website for **Project Nirog**: search a medicine you buy in India and find exact substitutes
-(same salts, strength, form and release) from Jan Aushadhi and other brands, cheapest first.
+The website for **Project Nirog: health for everyone, everywhere.** Search a medicine you buy in India and find
+its exact substitutes (same salts, strength, form and release) from Jan Aushadhi and other makers, with where
+each is available and what it costs.
 
 The API lives in [iaintsaket/nirog-api](https://github.com/iaintsaket/nirog-api).
 

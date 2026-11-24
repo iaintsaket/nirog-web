@@ -12,10 +12,10 @@ export function SearchHero() {
         <HeroArt />
       </div>
       <h1 className="intro" style={lineUp(1)}>
-        Pay less for the same medicine
+        Health for everyone, everywhere
       </h1>
       <p className="lede intro" style={lineUp(2)}>
-        Same salts, strength and form, from Jan Aushadhi and other brands, with what you could save.
+        Find the exact medicine you need, with the same salts, strength and form, wherever it’s available and at a price you can manage.
       </p>
     </section>
   );

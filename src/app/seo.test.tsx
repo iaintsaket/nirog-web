@@ -48,7 +48,7 @@ test("structured data describes the site search and cannot break out of its scri
 
 test("the pre-rendered home has the real heading and a search that works without JavaScript", () => {
   render(<SearchFallback />);
-  expect(screen.getByRole("heading", { level: 1, name: "Pay less for the same medicine" })).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 1, name: "Health for everyone, everywhere" })).toBeTruthy();
   const form = screen.getByRole("search") as HTMLFormElement;
   expect([form.getAttribute("action"), form.method]).toEqual(["/", "get"]);
   expect((screen.getByLabelText("Medicine name or salt") as HTMLInputElement).name).toBe("q");
