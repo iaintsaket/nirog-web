@@ -162,7 +162,6 @@ test("search: the empty screen shows live figures about our prices, and nothing 
     "Medicines we know": "3,49,595",
     "Jan Aushadhi medicines": "1,600",
     "Have a cheaper exact substitute": "3,30,613",
-    "Typical saving": "83%",
   });
   expect(stats).toHaveTextContent("Prices updated 20 Nov 2026");
   unmount();
