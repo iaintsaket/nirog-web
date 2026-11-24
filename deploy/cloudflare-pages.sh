@@ -8,4 +8,4 @@ project="${1:-nirog}"
 cd "$(dirname "$0")/.."
 npm ci
 npm run build
-npx wrangler pages deploy out --project-name "$project" --branch main
+npx --yes wrangler@4.167.0 pages deploy out --project-name "$project" --branch main
