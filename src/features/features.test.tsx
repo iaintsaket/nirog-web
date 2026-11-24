@@ -489,8 +489,42 @@ test("saved: account deletion errors are shown; sign out clears the user", async
   await userEvent.click(await screen.findByRole("button", { name: "Delete my account" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Try later");
 
-  await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+  await userEvent.click(screen.getByRole("button", { name: /account menu/i }));
+  await userEvent.click(screen.getByRole("menuitem", { name: "Sign out" }));
   expect(await screen.findAllByRole("link", { name: "Sign in" })).toHaveLength(2);
+});
+
+test("account menu: Google picture and first name; Saved and Sign out live in its dropdown", async () => {
+  mockApi({ "GET /v1/me": { ...user, name: "Asha Rao", picture_url: "https://lh3.googleusercontent.com/a/asha=s96-c" } });
+  withAuth(<AuthMenu />);
+
+  const toggle = await screen.findByRole("button", { name: /account menu/i });
+  expect(toggle).toHaveTextContent("Asha");
+  expect(toggle).not.toHaveTextContent("Rao");
+  expect(toggle.querySelector("img")?.getAttribute("src")).toBe("https://lh3.googleusercontent.com/a/asha=s96-c");
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("link", { name: "Saved" })).toBeNull();
+
+  await userEvent.click(toggle);
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  expect(screen.getByRole("menuitem", { name: "Saved" })).toHaveAttribute("href", "/saved");
+  expect(screen.getByRole("menuitem", { name: "Sign out" })).toBeInTheDocument();
+
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("menu")).toBeNull();
+  expect(toggle).toHaveFocus();
+
+  await userEvent.click(toggle);
+  await userEvent.click(document.body);
+  expect(screen.queryByRole("menu")).toBeNull();
+});
+
+test("account menu: without a picture it shows the first letter instead", async () => {
+  mockApi({ "GET /v1/me": { ...user, name: "asha", picture_url: null } });
+  withAuth(<AuthMenu />);
+  const toggle = await screen.findByRole("button", { name: /account menu/i });
+  expect(toggle.querySelector("img")).toBeNull();
+  expect(toggle.querySelector(".avatar")).toHaveTextContent("A");
 });
 
 test("sign-in: shows the Google button, a failure notice, or the signed-in user", async () => {
