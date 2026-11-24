@@ -2,8 +2,9 @@
 # It runs the same script a person would (deploy/cloudflare-pages.sh), so moving hosts means
 # changing that script and these secrets, not this pipeline.
 #
-# Every deploy gets a version vYYYY.MM.DD.N: a Git tag, a GitHub Release listing its PRs, and the
-# same label on the Cloudflare deployment. To go back, run the "rollback" workflow with a version
+# Every deploy gets a semantic version (v1.0.0, v1.0.1, ...): a Git tag, a GitHub Release listing its
+# PRs, and the same label on the Cloudflare deployment. A merge bumps the patch number; label the PR
+# "release: minor" (new feature) or "release: major" (big change) to bump those instead. To go back, run the "rollback" workflow with a version
 # (or deploy/rollback-pages.sh locally): it is instant, with no rebuild.
 #
 # Repo secrets: CLOUDFLARE_API_TOKEN (Pages: Edit only), CLOUDFLARE_ACCOUNT_ID.
@@ -45,10 +46,19 @@ jobs:
           cache: npm
       - name: Pick the version
         run: |
-          today="v$(date -u +%Y.%m.%d)"
-          n=$(git tag -l "$today.*" | wc -l)
-          echo "VERSION=$today.$((n + 1))" >> "$GITHUB_ENV"
-          echo "PREVIOUS=$(git tag -l 'v*' --sort=-creatordate | head -1)" >> "$GITHUB_ENV"
+          last=$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
+          if [ -z "$last" ]; then
+            next=v1.0.0
+          else
+            labels=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" --jq '.[0].labels[].name' 2>/dev/null || true)
+            IFS=. read -r major minor patch <<< "${last#v}"
+            if grep -qx 'release: major' <<< "$labels"; then next="v$((major + 1)).0.0"
+            elif grep -qx 'release: minor' <<< "$labels"; then next="v$major.$((minor + 1)).0"
+            else next="v$major.$minor.$((patch + 1))"; fi
+          fi
+          echo "VERSION=$next" >> "$GITHUB_ENV"
+          echo "PREVIOUS=$last" >> "$GITHUB_ENV"
+          echo "Releasing $next (previous: ${last:-none})"
       - name: Build and upload
         run: deploy/cloudflare-pages.sh nirog
         env:
@@ -67,6 +77,7 @@ jobs:
             echo "$path -> $code"
             [ "$code" = 200 ] || exit 1
           done
+          deploy/expect-live-version.sh "$VERSION"
       - name: Look and layout checks on the live site
         run: |
           npm ci
