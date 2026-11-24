@@ -10,8 +10,9 @@ const DESC = [50, 170]; // Shorter says little; longer is cut off in the snippet
 /** Error pages that Next writes into the export; they are never indexed. */
 const SKIP = new Set(["404.html", "_not-found.html"]);
 
-const decode = (s) =>
-  s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'");
+const ENTITIES = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#x27;": "'", "&#39;": "'" };
+/** One pass, so "&amp;lt;" becomes "&lt;" and not "<". */
+const decode = (s) => s.replace(/&(amp|lt|gt|quot|#x27|#39);/g, (e) => ENTITIES[e]);
 
 /** Attributes of every tag named `tag`, as plain objects. */
 function tags(html, tag) {
