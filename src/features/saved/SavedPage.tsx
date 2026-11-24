@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { SavedMatch } from "@/api/client";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { AccountsComingSoon, signInEnabled } from "@/features/auth/signInFlag";
 import { compareHref } from "@/features/search/SearchPage";
 import { deleteAccount } from "@/services/account";
 import { listSaved, removeSaved } from "@/services/saved";
@@ -13,6 +14,7 @@ type State = { kind: "loading" } | { kind: "done"; items: SavedMatch[] } | { kin
 
 export function SavedPage() {
   const { user, loading } = useAuth();
+  if (!signInEnabled()) return <AccountsComingSoon title="Saved medicines" />;
   if (loading) return <p aria-busy="true">Loading…</p>;
   if (!user) {
     return (

@@ -435,6 +435,17 @@ test("compare: already cheapest, save failure, and not found", async () => {
   expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
 });
 
+test("sign-in off (the launch default): no sign-in anywhere, no account calls, pages say accounts are coming", async () => {
+  vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "");
+  const calls = mockApi({ "GET /v1/me": user });
+  withAuth(<><AuthMenu /><SignInPage /><SavedPage /></>);
+
+  expect(await screen.findAllByText(/accounts are coming soon/i)).toHaveLength(2);
+  expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
+  expect(screen.queryByRole("link", { name: "Continue with Google" })).toBeNull();
+  expect(calls).toHaveLength(0);
+});
+
 test("saved: signed-out users are sent to sign in", async () => {
   mockApi(signedOut);
   withAuth(<><AuthMenu /><SavedPage /></>);

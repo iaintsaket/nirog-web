@@ -41,6 +41,7 @@ The site is a static export (`npm run build` writes `out/`), so any static host 
 |---|---|
 | `API_ORIGIN` | Where the API runs, for example `https://nirog-api-xxxx.a.run.app`. |
 | `PROXY_SECRET` | The same value the API has. Keep it in the host's secret store. |
+| `NEXT_PUBLIC_SIGN_IN` | Build-time. `on` shows Google sign-in and saved medicines; anything else hides them (the launch default). |
 
 - **Cloudflare Pages (current):** `deploy/cloudflare-pages.sh`. Set both settings once with `npx wrangler pages secret put <NAME> --project-name nirog`.
 - **Another host (for example AWS CloudFront with Lambda@Edge, or Vercel):** upload `out/`, then add a small adapter beside `[[path]].ts` that calls `proxy(request, env, clientIp)` with the platform's client IP. `proxy.ts` does not change.

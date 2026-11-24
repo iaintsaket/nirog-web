@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@/api/client";
 import { currentUser, signOut } from "@/services/account";
+import { signInEnabled } from "./signInFlag";
 
 type AuthState = {
   user: User | null;
@@ -20,9 +21,10 @@ const AuthContext = createContext<AuthState>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(signInEnabled);
 
   useEffect(() => {
+    if (!signInEnabled()) return;
     let live = true;
     currentUser().then((r) => {
       if (!live) return;
