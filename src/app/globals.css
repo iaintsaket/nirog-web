@@ -257,7 +257,9 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 @media (max-width: 760px) {
   .is-split .search-left { flex-basis: 100%; }
   .search-hero { padding-top: 4vh; }
-  .search-right, .is-split .search-right {
+  /* .search-shell raises specificity above the later `.search-right { position: relative }`, which
+     otherwise leaves the hidden sheet in the page flow as ~700px of empty space below the footer. */
+  .search-shell .search-right {
     position: fixed; inset: auto 0 0 0; height: 82vh; margin: 0; padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px));
     border: 0; border-radius: 18px 18px 0 0; background: var(--bg); box-shadow: 0 -12px 40px rgb(0 0 0 / 25%);
     overflow-y: auto; opacity: 1; z-index: 20; transform: translateY(100%); pointer-events: none; visibility: hidden;
@@ -266,7 +268,8 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
   .sheet-open .search-right { transform: none; pointer-events: auto; visibility: visible; transition: transform .45s var(--ease); }
   /* Spans the sheet edge to edge (cancelling its 16px padding) and stays above the cards' entrance layers. */
   .sheet-bar { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0;
-    margin: 0 -16px; padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); z-index: 5; }
+    margin: 0 -16px; padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); z-index: 5;
+    touch-action: none; cursor: grab; } /* drag it down to close */
   .sheet-grab { width: 44px; height: 5px; border-radius: 3px; background: var(--border); margin-left: calc(50% - 22px); }
 }
 @media (prefers-reduced-motion: reduce) {
