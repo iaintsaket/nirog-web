@@ -119,8 +119,18 @@ p { margin: 0; }
   font: inherit; color: var(--text); background: none; text-decoration: none; cursor: pointer;
 }
 .account-item:hover, .account-item:focus-visible { background: var(--accent-soft); outline: none; }
-.account-signout { margin-top: 6px; border-top: 1px solid var(--border); border-radius: 0 0 8px 8px; color: var(--muted); }
-.account-signout:hover, .account-signout:focus-visible { color: var(--text); }
+.account-signout {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px; position: relative;
+  color: color-mix(in srgb, var(--danger) 82%, var(--surface)); font-weight: 600;
+  transition: background .2s var(--ease), color .2s var(--ease);
+}
+.account-signout::before { content: ""; position: absolute; left: 6px; right: 6px; top: -5px; border-top: 1px solid var(--border); }
+.account-signout:hover, .account-signout:focus-visible { background: var(--danger-soft); color: var(--danger); }
+.signout-icon { flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.signout-arrow { transition: transform .25s var(--ease); }
+.account-signout:hover .signout-arrow, .account-signout:focus-visible .signout-arrow { transform: translateX(2.5px); }
+.account-signout:active { transform: scale(.98); }
+@media (prefers-reduced-motion: reduce) { .account-signout, .signout-arrow { transition: none; } .account-signout:hover .signout-arrow { transform: none; } }
 @media (max-width: 480px) { .account-name { display: none; } .account-toggle { padding-right: 8px; } }
 
 .site-footer { border-top: 1px solid var(--border); padding: 20px 0; }

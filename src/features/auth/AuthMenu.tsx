@@ -92,7 +92,14 @@ export function AuthMenu() {
               void signOut();
             }}
           >
-            Sign out
+            <svg className="signout-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+              <path className="signout-door" d="M8 3.5H5.5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2H8" />
+              <g className="signout-arrow">
+                <path d="M8.5 10h8" />
+                <path d="m13.5 6.5 3.5 3.5-3.5 3.5" />
+              </g>
+            </svg>
+            <span>Sign out</span>
           </button>
         </div>
       )}
