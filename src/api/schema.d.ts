@@ -240,6 +240,8 @@ export interface components {
         ComparedOffer: {
             links: components["schemas"]["BuyLinkDto"][];
             offer: components["schemas"]["OfferDto"];
+            /** @description Stock at each online pharmacy, as last checked; empty when no pharmacy was checked. */
+            vendors: components["schemas"]["VendorStatusDto"][];
         };
         ComparisonResponse: {
             key: string;
@@ -356,12 +358,32 @@ export interface components {
             with_cheaper_substitute: number;
         };
         /** @enum {string} */
+        StockStatusDto: "in_stock" | "out_of_stock" | "unknown";
+        /** @enum {string} */
         Unit: "unit" | "ml" | "g";
         UserDto: {
             email: string;
             /** Format: uuid */
             id: string;
             name: string;
+        };
+        /** @description One online pharmacy's listing of an offer. */
+        VendorStatusDto: {
+            /**
+             * Format: date-time
+             * @description When the scraper last read the product page.
+             */
+            checked_at: string;
+            /**
+             * Format: int64
+             * @description The pharmacy's price per pack, in paise; absent when the listing is too old to trust.
+             */
+            price_paise?: number | null;
+            status: components["schemas"]["StockStatusDto"];
+            /** @description The product page. */
+            url: string;
+            /** @description Stable id, e.g. "pharmeasy". */
+            vendor: string;
         };
     };
     responses: never;
