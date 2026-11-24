@@ -1,6 +1,7 @@
 // Fetches every medicine page from the API for the static build: ~20 requests in all.
 // Usage: node scripts/fetch-medicines.mjs <api origin> [out file]
 //   e.g. node scripts/fetch-medicines.mjs https://nirog.pages.dev data/medicines.json
+// PAGES_TOKEN (deploy secret) is sent to /v1/pages, which the API keeps for the deploy only.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
@@ -10,9 +11,13 @@ if (!origin) {
   process.exit(2);
 }
 
+const token = process.env.PAGES_TOKEN;
+
 async function get(path) {
+  const headers = { accept: "application/json" };
+  if (token && path.startsWith("/v1/pages")) headers.authorization = `Bearer ${token}`;
   for (let attempt = 1; ; attempt++) {
-    const res = await fetch(new URL(path, origin), { headers: { accept: "application/json" } });
+    const res = await fetch(new URL(path, origin), { headers });
     if (res.ok) return res.json();
     // Stay well inside the API's per-client rate limit; retry only what can succeed later.
     if (attempt < 6 && (res.status === 429 || res.status >= 500)) {
