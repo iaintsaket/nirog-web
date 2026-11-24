@@ -1,6 +1,11 @@
-# Deploys the website to Cloudflare Pages after CI passes on main.
+# Deploys the website to Cloudflare Pages after CI passes on main, and records it as a release.
 # It runs the same script a person would (deploy/cloudflare-pages.sh), so moving hosts means
 # changing that script and these secrets, not this pipeline.
+#
+# Every deploy gets a version vYYYY.MM.DD.N: a Git tag, a GitHub Release listing its PRs, and the
+# same label on the Cloudflare deployment. To go back, run the "rollback" workflow with a version
+# (or deploy/rollback-pages.sh locally): it is instant, with no rebuild.
+#
 # Repo secrets: CLOUDFLARE_API_TOKEN (Pages: Edit only), CLOUDFLARE_ACCOUNT_ID.
 # Repo variable (optional): NEXT_PUBLIC_SIGN_IN=on shows Google sign-in; unset keeps it hidden.
 name: deploy
@@ -21,23 +26,40 @@ jobs:
     name: Cloudflare Pages
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release tag
     environment:
       name: production
       url: https://nirog.pages.dev
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ env.SHA }}
+          fetch-depth: 0 # tags, for the version number and release notes
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
+      - name: Pick the version
+        run: |
+          today="v$(date -u +%Y.%m.%d)"
+          n=$(git tag -l "$today.*" | wc -l)
+          echo "VERSION=$today.$((n + 1))" >> "$GITHUB_ENV"
+          echo "PREVIOUS=$(git tag -l 'v*' --sort=-creatordate | head -1)" >> "$GITHUB_ENV"
       - name: Build and upload
         run: deploy/cloudflare-pages.sh nirog
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NEXT_PUBLIC_SIGN_IN: ${{ vars.NEXT_PUBLIC_SIGN_IN }}
+      - name: Record the release (it is live from here on)
+        run: |
+          notes="Live at https://nirog.pages.dev. Roll back from Actions → rollback, or: deploy/rollback-pages.sh <version>."
+          gh release create "$VERSION" --target "$SHA" --title "$VERSION" --notes "$notes" --generate-notes \
+            ${PREVIOUS:+--notes-start-tag "$PREVIOUS"}
       - name: Smoke test the live site
         run: |
           for path in / /v1/health; do
@@ -57,3 +79,11 @@ jobs:
           name: live-look-and-layout-report
           path: playwright-report/
           retention-days: 30
+      - name: Flag the release if the live checks failed
+        if: failure() && env.VERSION != ''
+        run: |
+          gh release view "$VERSION" >/dev/null 2>&1 || exit 0
+          body="$(gh release view "$VERSION" --json body --jq .body)"
+          gh release edit "$VERSION" --title "$VERSION (live checks failed)" --notes "⚠️ Live checks failed after this deploy. To go back to the previous release, run Actions → rollback with ${PREVIOUS:-the previous version}.
+
+          $body"

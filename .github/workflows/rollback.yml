@@ -1,0 +1,40 @@
+# Instant rollback: points the live site at an earlier release's deployment. No rebuild.
+# Run from Actions → rollback → Run workflow, and enter a version from the Releases page.
+name: rollback
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release to go back to, for example v2026.11.24.1"
+        required: true
+concurrency:
+  group: deploy-pages # never overlaps a deploy
+  cancel-in-progress: false
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    name: Roll back to ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://nirog.pages.dev
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # tags, to find the release's commit
+      - name: Point the live site at ${{ inputs.version }}
+        run: deploy/rollback-pages.sh "$VERSION" nirog
+        env:
+          VERSION: ${{ inputs.version }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Smoke test the live site
+        run: |
+          sleep 10
+          for path in / /v1/health; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://nirog.pages.dev$path")
+            echo "$path -> $code"
+            [ "$code" = 200 ] || exit 1
+          done

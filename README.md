@@ -46,6 +46,12 @@ The site is a static export (`npm run build` writes `out/`), so any static host 
 - **Cloudflare Pages (current):** merging to `main` deploys automatically once CI passes (`.github/workflows/deploy.yml`, which runs `deploy/cloudflare-pages.sh`). To deploy by hand, run the script. Set both settings once with `npx wrangler pages secret put <NAME> --project-name nirog`.
 - **Another host (for example AWS CloudFront with Lambda@Edge, or Vercel):** upload `out/`, then add a small adapter beside `[[path]].ts` that calls `proxy(request, env, clientIp)` with the platform's client IP. `proxy.ts` does not change.
 
+## Releases and rollback
+
+Every deploy from `main` is a release named by date, such as `v2026.11.24.1`: a Git tag, a [GitHub Release](https://github.com/iaintsaket/nirog-web/releases) listing its PRs, and the same label on the Cloudflare deployment. If the live checks fail after a deploy, the release title says so.
+
+To go back, open **Actions → rollback → Run workflow** and enter a version. The live site switches to that release's deployment in seconds, with no rebuild. Locally: `deploy/rollback-pages.sh <version>` with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` set. Then revert the bad PR so `main` matches what is live.
+
 ## License
 
 [MIT](LICENSE)
