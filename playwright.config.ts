@@ -21,5 +21,5 @@ export default defineConfig({
   ],
   webServer: live
     ? undefined
-    : { command: "npx serve out -l 4173 --no-clipboard", url: "http://localhost:4173", reuseExistingServer: !process.env.CI },
+    : { command: "node e2e/serve.mjs 4173", url: "http://localhost:4173", reuseExistingServer: !process.env.CI },
 });
