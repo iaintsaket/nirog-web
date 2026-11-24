@@ -13,6 +13,7 @@ export type VendorStatus = Schemas["VendorStatusDto"];
 export type MedicinePage = Schemas["MedicinePageDto"];
 export type User = Schemas["UserDto"];
 export type SavedMatch = Schemas["SavedMatchDto"];
+export type RecentMedicine = Schemas["RecentDto"];
 
 /** Typed client generated from the API's openapi.json. Same-origin: /v1 is proxied. */
 export const api = createClient<paths>({
