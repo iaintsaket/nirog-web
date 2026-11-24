@@ -11,7 +11,8 @@ const live = process.env.LIVE_URL;
 export default defineConfig({
   testDir: "e2e",
   timeout: 45_000,
-  retries: process.env.CI ? 1 : 0,
+  // Fixture runs must pass first time; the live check talks to the real site and may hit a network blip.
+  retries: live ? 1 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: { baseURL: live ?? "http://localhost:4173", trace: "retain-on-failure" },
   projects: [

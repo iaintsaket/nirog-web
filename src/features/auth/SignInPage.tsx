@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { SIGN_IN_URL } from "@/services/account";
+import { ErrorNotice } from "@/ui/ErrorNotice";
 import { Pulse } from "@/ui/Pulse";
 import { useAuth } from "./AuthProvider";
 import { AccountsComingSoon, signInEnabled } from "./signInFlag";
@@ -132,9 +133,7 @@ export function SignInPage() {
           </p>
         </div>
         {failed && (
-          <p role="alert" className="notice notice-error">
-            Sign-in did not complete. Please try again.
-          </p>
+          <ErrorNotice>Sign-in did not complete. Please try again.</ErrorNotice>
         )}
         {user ? (
           <Link className="button button-primary auth-wide" href="/saved">

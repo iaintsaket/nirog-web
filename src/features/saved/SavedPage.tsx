@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import type { SavedMatch } from "@/api/client";
+import { useState } from "react";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { AccountsComingSoon, signInEnabled } from "@/features/auth/signInFlag";
-import { compareHref } from "@/features/search/SearchPage";
+import { compareHref } from "@/lib/medicines";
 import { deleteAccount } from "@/services/account";
 import { listSaved, removeSaved } from "@/services/saved";
-
-type State = { kind: "loading" } | { kind: "done"; items: SavedMatch[] } | { kind: "error"; message: string };
+import { useResult } from "@/services/useResult";
+import { ErrorNotice } from "@/ui/ErrorNotice";
 
 export function SavedPage() {
   const { user, loading } = useAuth();
@@ -31,44 +30,29 @@ export function SavedPage() {
 }
 
 function SavedList() {
-  const [state, setState] = useState<State>({ kind: "loading" });
-
-  useEffect(() => {
-    let live = true;
-    listSaved().then((r) => {
-      if (live) setState(r.ok ? { kind: "done", items: r.data } : { kind: "error", message: r.message });
-    });
-    return () => {
-      live = false;
-    };
-  }, []);
+  const r = useResult(listSaved, []);
+  const [removed, setRemoved] = useState<string[]>([]);
+  const items = r?.ok ? r.data.filter((i) => !removed.includes(i.id)) : [];
 
   async function remove(id: string) {
-    const r = await removeSaved(id);
-    if (r.ok && state.kind === "done") {
-      setState({ kind: "done", items: state.items.filter((i) => i.id !== id) });
-    }
+    if ((await removeSaved(id)).ok) setRemoved((ids) => [...ids, id]);
   }
 
   return (
     <div className="stack-lg">
       <section className="stack">
         <h1>Saved medicines</h1>
-        {state.kind === "loading" && <p aria-busy="true">Loading…</p>}
-        {state.kind === "error" && (
-          <p role="alert" className="notice notice-error">
-            {state.message}
-          </p>
-        )}
-        {state.kind === "done" && state.items.length === 0 && (
+        {!r && <p aria-busy="true">Loading…</p>}
+        {r && !r.ok && <ErrorNotice>{r.message}</ErrorNotice>}
+        {r?.ok && items.length === 0 && (
           <p className="notice">
             Nothing saved yet. <Link href="/">Search a medicine</Link>, open its comparison and press
             Save.
           </p>
         )}
-        {state.kind === "done" && state.items.length > 0 && (
+        {items.length > 0 && (
           <ul className="cards">
-            {state.items.map((m) => (
+            {items.map((m) => (
               <li key={m.id} className="card row">
                 <Link href={compareHref(m.key, m.offer_id ?? undefined)} className="grow">
                   <strong>{m.label}</strong>

@@ -1,6 +1,6 @@
-import type { CSSProperties } from "react";
 import { BackdropArt } from "./BackdropArt";
 import { HeroArt } from "./HeroArt";
+import { lineUp } from "@/ui/motion";
 
 export const PLACEHOLDER = "e.g. Dolo 650, Atorvastatin 10, Pan 40";
 
@@ -8,13 +8,13 @@ export const PLACEHOLDER = "e.g. Dolo 650, Atorvastatin 10, Pan 40";
 export function SearchHero() {
   return (
     <section className="search-hero">
-      <div className="intro" style={{ "--i": 0 } as CSSProperties}>
+      <div className="intro" style={lineUp(0)}>
         <HeroArt />
       </div>
-      <h1 className="intro" style={{ "--i": 1 } as CSSProperties}>
+      <h1 className="intro" style={lineUp(1)}>
         Health for everyone, everywhere
       </h1>
-      <p className="lede intro" style={{ "--i": 2 } as CSSProperties}>
+      <p className="lede intro" style={lineUp(2)}>
         Find the exact medicine you need, with the same salts, strength and form, wherever it's available and at a price you can manage.
       </p>
     </section>
@@ -23,7 +23,7 @@ export function SearchHero() {
 
 export function SearchTrust() {
   return (
-    <ul className="search-trust plain intro" style={{ "--i": 4 } as CSSProperties} aria-label="About the prices">
+    <ul className="search-trust plain intro" style={lineUp(4)} aria-label="About the prices">
       <li>Government Jan Aushadhi prices</li>
       <li>No ads or tie-ups</li>
     </ul>
@@ -41,7 +41,7 @@ export function SearchFallback() {
       <BackdropArt />
       <div className="search-left">
         <SearchHero />
-        <form role="search" action="/" method="get" className="search-form intro" style={{ "--i": 3 } as CSSProperties}>
+        <form role="search" action="/" method="get" className="search-form intro" style={lineUp(3)}>
           <label htmlFor="q" className="visually-hidden">
             Medicine name or salt
           </label>

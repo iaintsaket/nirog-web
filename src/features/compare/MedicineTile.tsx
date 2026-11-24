@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, type CSSProperties, type ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { BuyLink, Offer, VendorStatus } from "@/api/client";
 import { SourceBadge } from "@/features/search/SourceBadge";
 import { packLabel, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
 import { useCompare } from "./CompareContext";
+import { lineUp } from "@/ui/motion";
 
 type Props = {
   offer: Offer;
@@ -51,7 +52,7 @@ export function MedicineTile({ offer, links = [], vendors, order, tone, tags, ba
   return (
     <li
       className={`rung card-in${tone === "you" ? " rung-you" : tone === "best" ? " rung-best" : ""}${canCompare ? " rung-clickable" : ""}`}
-      style={{ "--i": order } as CSSProperties}
+      style={lineUp(order)}
       onClick={(e) => {
         // The whole card opens the comparison; its links and buttons keep their own jobs.
         if (canCompare && !(e.target as HTMLElement).closest("a, button")) compare.show([item]);

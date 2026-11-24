@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/nirog-icon.svg" width="88" height="88" alt="Nirog icon"></p>
+
 # nirog-web
 
 The website for **Project Nirog: health for everyone, everywhere.** Search a medicine you buy in India and find

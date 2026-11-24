@@ -9,7 +9,7 @@ type ApiResponse<T> = {
 const FALLBACK = "Something went wrong. Please try again.";
 
 /** Turns an openapi-fetch response into a Result with a user-readable message. */
-export function toResult<T>(res: ApiResponse<T>): Result<T> {
+function toResult<T>(res: ApiResponse<T>): Result<T> {
   if (res.response.ok) {
     return { ok: true, data: res.data as T };
   }
