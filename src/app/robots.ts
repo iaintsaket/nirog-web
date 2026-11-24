@@ -7,18 +7,16 @@ export const dynamic = "force-static";
  * Crawlers that train AI models or build SEO/data indexes. They bring no search visitors and
  * would only add load, so they are asked to stay away entirely. Search engines are not listed.
  * Google-Extended and Applebot-Extended only opt out of AI training; Google and Apple search still index.
+ * AI *search* bots (OAI-SearchBot, ChatGPT-User, PerplexityBot) and Petal Search stay allowed: they send visitors.
  */
 const BANNED = [
   "GPTBot",
-  "ChatGPT-User",
-  "OAI-SearchBot",
   "CCBot",
   "ClaudeBot",
   "anthropic-ai",
   "Claude-Web",
   "Google-Extended",
   "Applebot-Extended",
-  "PerplexityBot",
   "Bytespider",
   "meta-externalagent",
   "Amazonbot",
@@ -32,7 +30,6 @@ const BANNED = [
   "DotBot",
   "DataForSeoBot",
   "BLEXBot",
-  "PetalBot",
 ];
 
 /**
