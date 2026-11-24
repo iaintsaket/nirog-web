@@ -115,3 +115,20 @@ test("about menu: opens beside the logo with Our mission and About us; Escape, a
 test("the sitemap lists the about page", () => {
   expect(sitemap().map((e) => e.url)).toContain(absolute("/about"));
 });
+
+test("about: a mouse can drag the cards and they settle on the nearest one; touch is left to the browser", () => {
+  reduceMotion(false);
+  render(<About />);
+  const t = track();
+  fireEvent.pointerDown(t, { pointerType: "touch", button: 0, clientX: 400, pointerId: 1 });
+  fireEvent.pointerMove(t, { pointerType: "touch", clientX: 100, pointerId: 1 });
+  expect(t.scrollLeft).toBe(0);
+
+  fireEvent.pointerDown(t, { pointerType: "mouse", button: 0, clientX: 400, pointerId: 2 });
+  fireEvent.pointerMove(t, { pointerType: "mouse", clientX: 100, pointerId: 2 });
+  expect(t.scrollLeft).toBe(300);
+  expect(t).toHaveClass("dragging");
+  fireEvent.pointerUp(t, { pointerType: "mouse", clientX: 100, pointerId: 2 });
+  expect(t).not.toHaveClass("dragging");
+  expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ left: 500 }));
+});
