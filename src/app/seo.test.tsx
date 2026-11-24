@@ -6,11 +6,22 @@ import manifest from "./manifest";
 import robots from "./robots";
 import sitemap from "./sitemap";
 
-test("robots allows the site, keeps crawlers off the API, and points at the sitemap", () => {
-  expect(robots()).toEqual({
-    rules: { userAgent: "*", allow: "/", disallow: "/v1/" },
-    sitemap: "https://nirog.pages.dev/sitemap.xml",
-  });
+test("robots lets search engines index static pages, keeps crawlers off anything that calls the API, and bans AI and SEO-tool crawlers", () => {
+  const r = robots();
+  expect(r.sitemap).toBe("https://nirog.pages.dev/sitemap.xml");
+  const rules = Array.isArray(r.rules) ? r.rules : [r.rules];
+  const everyone = rules.find((x) => x.userAgent === "*")!;
+  expect(everyone.allow).toBe("/");
+  // The API, live comparisons, search results and account pages all cost an API call or are per-visitor.
+  expect(everyone.disallow).toEqual(["/v1/", "/compare", "/*?q=", "/saved", "/signin"]);
+  const banned = rules.find((x) => x.userAgent !== "*")!;
+  expect(banned.disallow).toBe("/");
+  for (const bot of ["GPTBot", "CCBot", "ClaudeBot", "Google-Extended", "Bytespider", "AhrefsBot", "SemrushBot"]) {
+    expect(banned.userAgent).toContain(bot);
+  }
+  for (const engine of ["Googlebot", "Bingbot", "DuckDuckBot"]) {
+    expect(banned.userAgent).not.toContain(engine);
+  }
 });
 
 test("sitemap lists home, the A–Z index and every medicine page, and nothing per-visitor", () => {
