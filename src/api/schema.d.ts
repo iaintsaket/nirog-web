@@ -120,6 +120,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Records that the user opened a medicine; it moves to the top of `recent` on `/v1/me`. */
+        post: operations["record"];
+        /** Clears the user's recently opened medicines. */
+        delete: operations["clear"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pages": {
         parameters: {
             query?: never;
@@ -306,6 +324,13 @@ export interface components {
             /** @description Medicines with at least one exact substitute, in match-key order. */
             pages: components["schemas"]["MedicinePageDto"][];
         };
+        RecentDto: {
+            key: string;
+            label: string;
+            offer_id?: string | null;
+            /** Format: date-time */
+            opened_at: string;
+        };
         SaveMatchRequest: {
             key: string;
             /** @description 1 to 120 characters. */
@@ -369,6 +394,8 @@ export interface components {
             name: string;
             /** @description Google profile picture (`https://` on Google's image host), when the account has one. */
             picture_url?: string | null;
+            /** @description The last medicines this user opened, newest first (at most 3). */
+            recent: components["schemas"]["RecentDto"][];
         };
         /** @description One online pharmacy's listing of an offer. */
         VendorStatusDto: {
@@ -610,6 +637,76 @@ export interface operations {
                 };
             };
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    record: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMatchRequest"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    clear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

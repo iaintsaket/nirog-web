@@ -39,7 +39,7 @@ export function offer(over: Partial<Offer> = {}): Offer {
   };
 }
 
-export const user: User = { id: "u1", email: "asha@example.com", name: "Asha" };
+export const user: User = { id: "u1", email: "asha@example.com", name: "Asha", recent: [] };
 
 export function comparison(over: Partial<Comparison> = {}): Comparison {
   return {

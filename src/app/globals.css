@@ -302,6 +302,12 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 .chip { font: inherit; font-size: .875rem; border: 1px solid var(--border); background: var(--surface); color: var(--text);
   border-radius: 999px; padding: 5px 12px; cursor: pointer; }
 .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+/* Recently opened medicines under the home search (signed-in users). */
+.recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
+.recent-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.recent-list .chip { display: inline-block; max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
+.account-section { margin: 0; padding: 8px 10px 2px; border-top: 1px solid var(--border); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+.account-recent { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Home look: soft mint and blue glow behind the search, family illustration, trust strip. */
 body:has(.search-shell) {
   background:
