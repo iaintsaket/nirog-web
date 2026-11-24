@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { compareHref } from "@/lib/medicines";
 import { useAuth } from "./AuthProvider";
 import { signInEnabled } from "./signInFlag";
 
@@ -14,7 +13,7 @@ const firstName = (name: string, email: string) => (name.trim() || email.split("
  * with Saved and Sign out. It closes on Escape, on a click outside, or after choosing.
  */
 export function AuthMenu() {
-  const { user, loading, signOut, recent } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -77,35 +76,17 @@ export function AuthMenu() {
       </button>
       {open && (
         <div className="account-dropdown" role="menu" id={menuId} aria-label="Account">
-          <p className="account-email small muted" title={user.email}>
-            {user.email}
+          <p className="account-head" title={user.email}>
+            {user.name && <strong>{user.name}</strong>}
+            <span>{user.email}</span>
           </p>
           <Link role="menuitem" className="account-item" href="/saved" onClick={() => setOpen(false)}>
             Saved
           </Link>
-          {recent.length > 0 && (
-            <>
-              <p className="account-section small muted" aria-hidden="true">
-                Recent
-              </p>
-              {recent.map((r) => (
-                <Link
-                  key={r.key}
-                  role="menuitem"
-                  className="account-item account-recent"
-                  href={compareHref(r.key, r.offer_id ?? undefined)}
-                  title={r.label}
-                  onClick={() => setOpen(false)}
-                >
-                  {r.label}
-                </Link>
-              ))}
-            </>
-          )}
           <button
             role="menuitem"
             type="button"
-            className="account-item"
+            className="account-item account-signout"
             onClick={() => {
               setOpen(false);
               void signOut();
