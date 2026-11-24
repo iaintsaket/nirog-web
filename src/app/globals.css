@@ -249,7 +249,6 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 .bar-good { background: var(--accent); }
 .bar-you { background: #b7791f; }
 @keyframes bar-grow { from { transform: scaleX(0); } }
-.rung-links { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 4px; }
 .link-chip { font-size: .72rem; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
   color: var(--text); text-decoration: none; background: var(--bg); }
 .link-chip:hover { border-color: var(--accent); color: var(--accent-strong); }
@@ -462,3 +461,26 @@ html.splashing .brand .pulse { visibility: hidden; }
 .notice-warn { background: var(--warn-soft); border-radius: 10px; padding: 10px 14px; }
 .badge-diff { background: var(--warn-soft); color: #7a4b00; border-color: #e0b25c; }
 .close-link { align-self: flex-start; margin-top: auto; }
+
+/* Where to buy: one full-width row per vendor; the Buy button drops below the details on phones. */
+.wtb { border-top: 1px solid var(--border); padding-top: 14px; display: grid; gap: 10px; }
+.wtb-head .h3 { margin: 0; }
+.wtb-for { color: var(--muted); font-weight: 500; }
+.wtb-note { margin: 4px 0 0; color: var(--ja); font-weight: 600; }
+.wtb-list { display: grid; gap: 8px; }
+.wtb-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.wtb-best { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.wtb-out_of_stock { background: var(--bg); }
+.wtb-out_of_stock .wtb-name, .wtb-out_of_stock .wtb-price { color: var(--muted); }
+.wtb-info { display: grid; gap: 4px; min-width: 0; flex: 1 1 220px; }
+.wtb-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 1rem; }
+.wtb-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.wtb-price { font-weight: 700; }
+.wtb-pill { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: .8rem;
+  padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); }
+.wtb-pill-in_stock { background: var(--accent-soft); color: var(--accent-strong); border-color: transparent; }
+.wtb-pill-out_of_stock { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.wtb-buy { flex: 0 0 240px; }
+.wtb-foot { margin: 0; }
+@media (max-width: 560px) { .wtb-buy { flex: 1 1 100%; white-space: normal; text-align: center; } }
