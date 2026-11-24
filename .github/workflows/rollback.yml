@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release to go back to, for example v2026.11.24.1"
+        description: "Release to go back to, for example v1.0.0"
         required: true
 concurrency:
   group: deploy-pages # never overlaps a deploy

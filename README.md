@@ -48,7 +48,7 @@ The site is a static export (`npm run build` writes `out/`), so any static host 
 
 ## Releases and rollback
 
-Every deploy from `main` is a release named by date, such as `v2026.11.24.1`: a Git tag, a [GitHub Release](https://github.com/iaintsaket/nirog-web/releases) listing its PRs, and the same label on the Cloudflare deployment. If the live checks fail after a deploy, the release title says so.
+Every deploy from `main` is a release with a [semantic version](https://semver.org) such as `v1.0.1`: a Git tag, a [GitHub Release](https://github.com/iaintsaket/nirog-web/releases) listing its PRs, and the same label on the Cloudflare deployment. A merge bumps the patch number (`v1.0.1` → `v1.0.2`). Label the PR `release: minor` for a new feature (`v1.1.0`) or `release: major` for a big change (`v2.0.0`). If the live checks fail after a deploy, the release title says so.
 
 To go back, open **Actions → rollback → Run workflow** and enter a version. The live site switches to that release's deployment in seconds, with no rebuild. Locally: `deploy/rollback-pages.sh <version>` with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` set. Then revert the bad PR so `main` matches what is live.
 
