@@ -1,13 +1,13 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { BuyLink, Offer } from "@/api/client";
+import type { BuyLink, Offer, VendorStatus } from "@/api/client";
 import { CompareDialog } from "./CompareDialog";
 
 /** At most this many medicines can be added to one comparison (besides yours). */
 export const MAX_COMPARE = 3;
 
-export type CompareItem = { offer: Offer; links: BuyLink[] };
+export type CompareItem = { offer: Offer; links: BuyLink[]; vendors?: VendorStatus[] };
 
 type Ctx = {
   /** Your medicine: every other card compares against it. */

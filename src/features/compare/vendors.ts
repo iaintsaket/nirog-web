@@ -1,4 +1,4 @@
-import type { BuyLink } from "@/api/client";
+import type { BuyLink, VendorStatus } from "@/api/client";
 
 export type StockStatus = "in_stock" | "out_of_stock" | "unknown";
 
@@ -15,18 +15,6 @@ export type VendorRow = {
   pricePaise?: number;
   /** ISO time the vendor was last checked. */
   checkedAt?: string;
-};
-
-/**
- * Per-vendor stock as PRD-1 plans it for `/v1/compare` (`vendors: VendorStatusDto[]`).
- * Not in the API yet: replace with the generated `Schemas["VendorStatusDto"]` once it ships.
- */
-export type VendorStatus = {
-  vendor: string;
-  status: StockStatus;
-  price_paise?: number | null;
-  checked_at: string;
-  url: string;
 };
 
 const NAMES: Record<string, string> = {
@@ -57,22 +45,24 @@ function vendorOf(link: BuyLink): string {
 }
 
 /**
- * Rows for one offer. Per-vendor stock (`vendors`) wins when the API sends it; until then,
- * today's buy links become rows whose stock is not checked yet.
+ * Rows for one offer. A shop the scraper checked (`vendors`) shows its stock, price and product
+ * page in place of its search link; every other shop keeps its link, stock not checked.
  */
-export function vendorRows(links: BuyLink[], vendors?: VendorStatus[]): VendorRow[] {
-  if (vendors && vendors.length > 0) {
-    return vendors.map((v) => ({
-      vendor: v.vendor,
-      label: NAMES[v.vendor] ?? v.vendor,
-      url: v.url,
-      kind: "online",
-      status: v.status,
-      pricePaise: v.price_paise ?? undefined,
-      checkedAt: v.checked_at,
-    }));
-  }
-  return links.map((l) => ({ vendor: vendorOf(l), label: l.label, url: l.url, kind: l.kind, status: "unknown" }));
+export function vendorRows(links: BuyLink[], vendors: VendorStatus[] = []): VendorRow[] {
+  const checked: VendorRow[] = vendors.map((v) => ({
+    vendor: v.vendor,
+    label: NAMES[v.vendor] ?? v.vendor,
+    url: v.url,
+    kind: "online",
+    status: v.status,
+    pricePaise: v.price_paise ?? undefined,
+    checkedAt: v.checked_at,
+  }));
+  const seen = new Set(checked.map((r) => r.vendor));
+  const rest: VendorRow[] = links
+    .map((l) => ({ vendor: vendorOf(l), label: l.label, url: l.url, kind: l.kind, status: "unknown" as const }))
+    .filter((r) => !seen.has(r.vendor));
+  return [...checked, ...rest];
 }
 
 const RANK: Record<StockStatus, number> = { in_stock: 0, unknown: 1, out_of_stock: 2 };

@@ -24,18 +24,26 @@ test("today's buy links become rows whose stock is not checked yet, named by the
   ]);
 });
 
-test("per-vendor stock from the API wins over the links when present", () => {
-  const links = [{ kind: "online" as const, label: "Netmeds", url: "https://www.netmeds.com/x" }];
+test("per-vendor stock from the API replaces that shop's link; other shops keep their links", () => {
+  const links = [
+    { kind: "online" as const, label: "Netmeds", url: "https://www.netmeds.com/catalogsearch/result/dolo/all" },
+    { kind: "online" as const, label: "Tata 1mg", url: "https://www.1mg.com/search/all?name=dolo" },
+  ];
   expect(
     vendorRows(links, [
       { vendor: "pharmeasy", status: "in_stock", price_paise: 3000, checked_at: "2026-11-25T00:00:00Z", url: "https://pharmeasy.in/p" },
-      { vendor: "newshop", status: "out_of_stock", price_paise: null, checked_at: "2026-11-24T00:00:00Z", url: "https://n.example/" },
+      { vendor: "netmeds", status: "out_of_stock", price_paise: null, checked_at: "2026-11-24T00:00:00Z", url: "https://www.netmeds.com/prescriptions/dolo-650" },
     ]),
   ).toEqual([
     { vendor: "pharmeasy", label: "PharmEasy", url: "https://pharmeasy.in/p", kind: "online", status: "in_stock", pricePaise: 3000, checkedAt: "2026-11-25T00:00:00Z" },
-    { vendor: "newshop", label: "newshop", url: "https://n.example/", kind: "online", status: "out_of_stock", pricePaise: undefined, checkedAt: "2026-11-24T00:00:00Z" },
+    { vendor: "netmeds", label: "Netmeds", url: "https://www.netmeds.com/prescriptions/dolo-650", kind: "online", status: "out_of_stock", pricePaise: undefined, checkedAt: "2026-11-24T00:00:00Z" },
+    { vendor: "1mg", label: "Tata 1mg", url: "https://www.1mg.com/search/all?name=dolo", kind: "online", status: "unknown" },
   ]);
   expect(vendorRows(links, [])[0].vendor).toBe("netmeds");
+  // A shop the site has no name for yet is shown by its id.
+  expect(
+    vendorRows([], [{ vendor: "newshop", status: "unknown", checked_at: "2026-11-24T00:00:00Z", url: "https://n.example/" }])[0].label,
+  ).toBe("newshop");
 });
 
 test("ranking: in stock first, cheapest within; out of stock last; best option only when something is in stock", () => {

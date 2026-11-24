@@ -9,6 +9,7 @@ export type Stats = Schemas["StatsResponse"];
 export type CloseMatch = Schemas["CloseMatchDto"];
 export type Comparison = Schemas["ComparisonResponse"];
 export type BuyLink = Schemas["BuyLinkDto"];
+export type VendorStatus = Schemas["VendorStatusDto"];
 export type MedicinePage = Schemas["MedicinePageDto"];
 export type PagesBatch = Schemas["PagesResponse"];
 export type User = Schemas["UserDto"];

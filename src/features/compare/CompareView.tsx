@@ -140,7 +140,7 @@ export function ComparisonView({ c, headingLevel = "h1", hideCard = false, live 
   const chips = available.filter((b) => b.f.chip);
   const active = available.find((b) => b.f.id === filter);
   const kept = c.offers
-    .map(({ offer, links }, index) => ({ offer, links, index }))
+    .map(({ offer, links, vendors }, index) => ({ offer, links, vendors, index }))
     .filter((r) => !active || active.f.keep(r, c, active.offer));
   const rows = dearestFirst ? [...kept].reverse() : kept;
   const maxUnit = Math.max(...c.offers.map((o) => o.offer.unit_price_millipaise), 1);
@@ -148,13 +148,14 @@ export function ComparisonView({ c, headingLevel = "h1", hideCard = false, live 
   const Sub = headingLevel === "h1" ? "h2" : "h3";
   const ladder = (
     <ol className="ladder plain" aria-label="Substitutes, cheapest first">
-      {rows.map(({ offer, links, index: i }, n) => {
+      {rows.map(({ offer, links, vendors, index: i }, n) => {
         const you = i === c.searched_index;
         return (
           <MedicineTile
             key={offer.id}
             offer={offer}
             links={links}
+            vendors={vendors}
             order={5 + Math.min(n, 10)}
             tone={you ? "you" : i === 0 ? "best" : undefined}
             bar={{

@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, type CSSProperties, type ReactNode } from "react";
-import type { BuyLink, Offer } from "@/api/client";
+import type { BuyLink, Offer, VendorStatus } from "@/api/client";
 import { SourceBadge } from "@/features/search/SourceBadge";
 import { packLabel, rupees, shortUnitPrice, unitPriceLabel } from "@/lib/format";
 import { useCompare } from "./CompareContext";
@@ -10,6 +10,8 @@ type Props = {
   offer: Offer;
   /** Where to buy it: shown in the comparison window, not on the card, to keep cards short. */
   links?: BuyLink[];
+  /** Stock at online pharmacies, shown with the links. */
+  vendors?: VendorStatus[];
   /** Place in the entrance line-up. */
   order: number;
   tone?: "best" | "you";
@@ -41,10 +43,10 @@ function breakable(name: string): ReactNode {
  * The one medicine card used in every list. Inside a CompareProvider, clicking anywhere on it
  * compares it with your medicine, and "+ Compare" adds it to the compare tray.
  */
-export function MedicineTile({ offer, links = [], order, tone, tags, bar, pricePrefix = "", footer }: Props) {
+export function MedicineTile({ offer, links = [], vendors, order, tone, tags, bar, pricePrefix = "", footer }: Props) {
   const compare = useCompare();
   const canCompare = compare != null && offer.id !== compare.mine.id;
-  const item = { offer, links };
+  const item = { offer, links, vendors };
   const added = canCompare && compare.added(offer.id);
   return (
     <li
