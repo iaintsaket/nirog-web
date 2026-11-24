@@ -86,7 +86,7 @@ test.describe("search engines", () => {
   test.use({ javaScriptEnabled: false });
   test("home: heading, canonical, preview and structured data are in the HTML itself", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1, name: "Pay less for the same medicine" })).toBeAttached();
+    await expect(page.getByRole("heading", { level: 1, name: "Health for everyone, everywhere" })).toBeAttached();
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^https:\/\/[^/]+\/?$/);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /opengraph-image/);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);

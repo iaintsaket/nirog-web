@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const dynamic = "force-static";
-export const alt = "Nirog: cheaper exact substitutes for your medicines";
+export const alt = "Nirog: health for everyone, everywhere";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -17,9 +17,9 @@ export default function OpengraphImage() {
           </div>
           <div style={{ fontSize: 64, fontWeight: 700 }}>Nirog</div>
         </div>
-        <div style={{ fontSize: 72, fontWeight: 700, marginTop: 48, lineHeight: 1.1 }}>Pay less for the same medicine</div>
+        <div style={{ fontSize: 72, fontWeight: 700, marginTop: 48, lineHeight: 1.1 }}>Health for everyone, everywhere</div>
         <div style={{ fontSize: 34, marginTop: 28, color: "#5b675f" }}>
-          Exact substitutes from Jan Aushadhi and other brands: same salts, strength and form.
+          Same salts, strength and form, from any maker: where it's available, at a price you can manage.
         </div>
       </div>
     ),

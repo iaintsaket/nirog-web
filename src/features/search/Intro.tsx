@@ -12,10 +12,10 @@ export function SearchHero() {
         <HeroArt />
       </div>
       <h1 className="intro" style={{ "--i": 1 } as CSSProperties}>
-        Pay less for the same medicine
+        Health for everyone, everywhere
       </h1>
       <p className="lede intro" style={{ "--i": 2 } as CSSProperties}>
-        Same salts, strength and form, from Jan Aushadhi and other brands, with what you could save.
+        Find the exact medicine you need, with the same salts, strength and form, wherever it's available and at a price you can manage.
       </p>
     </section>
   );

@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const l = letterLabel((await params).letter);
   return {
     title: `Medicines: ${l}`,
-    description: `Medicines starting with ${l} that have cheaper exact substitutes, from Jan Aushadhi and other brands.`,
+    description: `Medicines starting with ${l} that have exact substitutes, from Jan Aushadhi and other brands.`,
     alternates: { canonical: `/medicines/${(await params).letter}` },
   };
 }
