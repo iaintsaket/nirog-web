@@ -357,7 +357,10 @@ test("compare: clicking an alternative opens a side-by-side comparison with your
     "Per unit": ["₹20.00 per tablet/capsule", "₹0.91 per tablet/capsule"],
   });
   expect(within(dialog).getByText(/You save/)).toHaveTextContent("You save ₹190.92 per pack (95%) with Atorvastatin Tablets IP 10mg.");
-  expect(within(dialog).getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer");
+  const where = within(dialog).getByRole("region", { name: "Where to buy" });
+  expect(where).toHaveTextContent("Sold only at Jan Aushadhi Kendras, not online.");
+  expect(within(where).getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer nofollow");
+  expect(within(where).queryByText(/Buy on/)).not.toBeInTheDocument();
 
   await userEvent.keyboard("{Escape}");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
