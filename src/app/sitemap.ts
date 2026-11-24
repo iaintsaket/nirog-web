@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: absolute("/"), changeFrequency: "daily", priority: 1 },
     ...letters().map((l) => ({ url: absolute(`/medicines/${l}`), lastModified, changeFrequency: "weekly" as const, priority: 0.5 })),
     ...entries.map((e) => ({ url: absolute(`/medicine/${e.slug}`), lastModified, changeFrequency: "weekly" as const, priority: 0.8 })),
+    { url: absolute("/about"), changeFrequency: "yearly", priority: 0.4 },
     { url: absolute("/privacy"), changeFrequency: "yearly", priority: 0.2 },
   ];
 }
