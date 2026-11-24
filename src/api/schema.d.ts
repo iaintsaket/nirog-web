@@ -367,6 +367,8 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            /** @description Google profile picture (`https://` on Google's image host), when the account has one. */
+            picture_url?: string | null;
         };
         /** @description One online pharmacy's listing of an offer. */
         VendorStatusDto: {
