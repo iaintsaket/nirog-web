@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && node scripts/prune-export.mjs",
+    "seo": "node scripts/seo-check.mjs out",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",

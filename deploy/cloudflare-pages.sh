@@ -15,6 +15,9 @@ node scripts/fetch-medicines.mjs "${MEDICINES_API:-https://nirog.pages.dev}" dat
 # The version is baked into the build: the footer shows it and /version.json reports it, so a
 # rollback to an older build reports that build's own version.
 MEDICINES_REQUIRED=1 NEXT_PUBLIC_VERSION="$label" npm run build
+# Report only: the full catalogue can trip a rule (two long names cut to the same title) that the
+# sample in CI cannot; that is worth a warning, not a blocked release.
+npm run -s seo || echo "::warning title=SEO check::problems on the full catalogue, listed above"
 printf '{"version":"%s","commit":"%s"}\n' "$label" "$(git rev-parse HEAD)" > out/version.json
 npx --yes wrangler@4.167.0 pages deploy out --project-name "$project" --branch main \
   --commit-hash "$(git rev-parse HEAD)" --commit-message "$label"
