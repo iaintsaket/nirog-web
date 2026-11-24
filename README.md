@@ -15,7 +15,8 @@ The API lives in [iaintsaket/nirog-api](https://github.com/iaintsaket/nirog-api)
 | `src/features` | UI by feature: search, compare, saved, auth. |
 | `src/services` | Calls to the API, returning typed `Result`s. |
 | `src/api` | Client generated from the API's `openapi.json` (`npm run gen:api`). Do not edit `schema.d.ts`. |
-| `functions/v1` | Cloudflare Pages Function that proxies `/v1/*` to the API with the proxy secret. |
+| `functions/v1` | Proxies `/v1/*` to the API with the proxy secret. `proxy.ts` is host-neutral; `[[path]].ts` is the Cloudflare Pages adapter. |
+| `deploy` | One script per host. |
 
 ## Run locally
 
@@ -31,6 +32,18 @@ npm run dev        # http://localhost:3000, /v1 is proxied to localhost:8080
 
 Every pull request must pass `ci`: generated client matches the API spec, ESLint, TypeScript,
 Vitest with at least 80% coverage, the production build, `npm audit` and gitleaks. CodeQL runs alongside.
+
+## Deploy
+
+The site is a static export (`npm run build` writes `out/`), so any static host can serve it. Only `/v1/*` needs code at the edge: it must reach the API with two settings.
+
+| Setting | Meaning |
+|---|---|
+| `API_ORIGIN` | Where the API runs, for example `https://nirog-api-xxxx.a.run.app`. |
+| `PROXY_SECRET` | The same value the API has. Keep it in the host's secret store. |
+
+- **Cloudflare Pages (current):** `deploy/cloudflare-pages.sh`. Set both settings once with `npx wrangler pages secret put <NAME> --project-name nirog`.
+- **Another host (for example AWS CloudFront with Lambda@Edge, or Vercel):** upload `out/`, then add a small adapter beside `[[path]].ts` that calls `proxy(request, env, clientIp)` with the platform's client IP. `proxy.ts` does not change.
 
 ## License
 

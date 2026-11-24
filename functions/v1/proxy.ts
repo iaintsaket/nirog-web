@@ -1,7 +1,9 @@
 /**
- * Cloudflare Pages Function core: forwards /v1/* to the API on Cloud Run.
+ * Host-neutral proxy core: forwards /v1/* to the API wherever it runs.
  * It adds the shared proxy secret (the API rejects requests without it) and the
  * real client IP (used for per-IP rate limiting). Client-sent copies are dropped.
+ * Only the host adapter knows how its platform reports the client IP
+ * (Cloudflare: functions/v1/[[path]].ts). Moving hosts means a new adapter, not edits here.
  */
 export interface Env {
   API_ORIGIN: string;
@@ -10,7 +12,7 @@ export interface Env {
 
 const STRIP = ["host", "x-nirog-proxy-key", "x-nirog-client-ip", "x-forwarded-for", "x-real-ip"];
 
-export async function proxy(request: Request, env: Env): Promise<Response> {
+export async function proxy(request: Request, env: Env, clientIp: string): Promise<Response> {
   if (!env.API_ORIGIN || !env.PROXY_SECRET) {
     return Response.json({ error: "unavailable", message: "Service not configured." }, { status: 503 });
   }
@@ -23,7 +25,7 @@ export async function proxy(request: Request, env: Env): Promise<Response> {
   const headers = new Headers(request.headers);
   for (const h of STRIP) headers.delete(h);
   headers.set("x-nirog-proxy-key", env.PROXY_SECRET);
-  headers.set("x-nirog-client-ip", request.headers.get("cf-connecting-ip") ?? "");
+  headers.set("x-nirog-client-ip", clientIp);
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   const upstream = await fetch(target, {
