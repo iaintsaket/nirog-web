@@ -1,22 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState } from "react";
-import type { CloseMatch } from "@/api/client";
+import { useId } from "react";
+import { compareHref } from "@/lib/medicines";
 import { closeMatches } from "@/services/catalog";
+import { useResult } from "@/services/useResult";
 import { MedicineTile } from "./MedicineTile";
 
 /** Nearby formulas for a medicine with no cheaper exact substitute, each saying what differs. */
 export function CloseMatches({ matchKey }: { matchKey: string }) {
-  const [matches, setMatches] = useState<CloseMatch[]>([]);
+  const r = useResult(() => closeMatches(matchKey), [matchKey]);
   const titleId = useId();
-  useEffect(() => {
-    let live = true;
-    closeMatches(matchKey).then((r) => live && r.ok && setMatches(r.data));
-    return () => {
-      live = false;
-    };
-  }, [matchKey]);
+  const matches = r?.ok ? r.data : [];
   if (matches.length === 0) return null;
   return (
     <section className="stack close-matches" aria-labelledby={titleId}>
@@ -42,14 +37,13 @@ export function CloseMatches({ matchKey }: { matchKey: string }) {
             footer={
               <>
                 <span className="small muted">{m.salts_label}</span>
-                <Link className="link-chip close-link" href={`/compare?key=${encodeURIComponent(m.key)}`}>
+                <Link className="link-chip close-link" href={compareHref(m.key)}>
                   See {m.offers} {m.offers === 1 ? "price" : "prices"} →
                 </Link>
               </>
             }
           />
         ))}
-
       </ul>
     </section>
   );

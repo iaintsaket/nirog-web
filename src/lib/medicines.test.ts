@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { afterEach, expect, test, vi } from "vitest";
 import type { MedicineData } from "./medicines";
-import { asOf, description, heading, letterOf, liveHref, medicineJsonLd, slugFor, title, withSlugs } from "./medicines";
+import { asOf, description, heading, letterOf, compareHref, medicineJsonLd, slugFor, title, withSlugs } from "./medicines";
 
 const sample = JSON.parse(readFileSync("e2e/fixtures/medicines.json", "utf8")) as MedicineData;
 const paracetamol = sample.pages.find((p) => p.comparison.key === "tablet|standard|paracetamol:650mg|unit")!;
@@ -39,7 +39,8 @@ test("page copy names the medicine, its options, the cheapest price and the date
   expect(d).toMatch(/^Same salts, strength and form: .+ and 886 more\. Cheapest is .+ at ₹0\.31 per tablet\/capsule, up to \d+% less\. Prices as of 20 Nov 2026\.$/);
   expect(asOf(null)).toBe("");
   expect(asOf("not a date")).toBe("");
-  expect(liveHref("a|b")).toBe("/compare?key=a%7Cb");
+  expect(compareHref("a|b")).toBe("/compare?key=a%7Cb");
+  expect(compareHref("k1", "b1")).toBe("/compare?key=k1&searched=b1");
 });
 
 test("A–Z buckets and structured data", () => {

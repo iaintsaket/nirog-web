@@ -129,7 +129,8 @@ export interface paths {
         };
         /**
          * Every medicine with a substitute, in batches of 500, for building the website's medicine
-         *     pages. Called a few dozen times per website deploy, never by browsers.
+         *     pages. Called a few dozen times per website deploy, never by browsers. With a pages token
+         *     configured it answers only `Authorization: Bearer <token>`, and it is never shared-cached.
          */
         get: operations["pages"];
         put?: never;
@@ -637,6 +638,14 @@ export interface operations {
                 };
             };
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

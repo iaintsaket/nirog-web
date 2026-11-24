@@ -11,9 +11,11 @@ import { BackdropArt } from "./BackdropArt";
 import { Divider, useSplit } from "./Divider";
 import { HomeStats } from "./HomeStats";
 import { PLACEHOLDER, SearchHero, SearchTrust } from "./Intro";
+import { ErrorNotice } from "@/ui/ErrorNotice";
 import { Loading } from "@/ui/Pulse";
 import { useDragToClose } from "@/ui/useDragToClose";
 import { HOME_EVENT } from "./HomeLink";
+import { lineUp } from "@/ui/motion";
 
 /** The page splits into list + prices once the query has this many characters. */
 const MIN = 2;
@@ -25,12 +27,6 @@ type State =
   | { kind: "loading" }
   | { kind: "done"; groups: SearchGroup[]; didYouMean: string[]; sameSaltAs: BrandAlias | null }
   | { kind: "error"; message: string };
-
-export function compareHref(key: string, searched?: string): string {
-  const p = new URLSearchParams({ key });
-  if (searched) p.set("searched", searched);
-  return `/compare?${p.toString()}`;
-}
 
 /** Wide screens show search and prices side by side; phones use the slide-up sheet. */
 function useWide(): boolean {
@@ -135,7 +131,7 @@ export function SearchPage() {
       <BackdropArt />
       <div className="search-left">
         <SearchHero />
-        <form role="search" className="search-form intro" style={{ "--i": 3 } as CSSProperties} onSubmit={(e) => e.preventDefault()}>
+        <form role="search" className="search-form intro" style={lineUp(3)} onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="q" className="visually-hidden">
             Medicine name or salt
           </label>
@@ -242,11 +238,7 @@ function ResultsList({ q, state, sel, picked, onShowAll, detail, onPick, onSugge
     );
   }
   if (state.kind === "error") {
-    return (
-      <p role="alert" className="notice notice-error">
-        {state.message}
-      </p>
-    );
+    return <ErrorNotice>{state.message}</ErrorNotice>;
   }
   if (state.groups.length === 0) {
     return (
@@ -299,7 +291,7 @@ function ResultsList({ q, state, sel, picked, onShowAll, detail, onPick, onSugge
                 role="option"
                 aria-selected={i === sel}
                 className="result card-in"
-                style={{ "--i": picked ? 0 : Math.min(i, 10) } as CSSProperties}
+                style={lineUp(picked ? 0 : Math.min(i, 10))}
                 onClick={() => onPick(i)}
               >
                 <span className="result-main">

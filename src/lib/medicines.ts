@@ -133,7 +133,9 @@ export function medicineJsonLd({ slug, page }: MedicineEntry): object {
   };
 }
 
-/** The live comparison for a key, with every offer and today's prices (it calls the API). */
-export function liveHref(matchKey: string): string {
-  return `/compare?${new URLSearchParams({ key: matchKey })}`;
+/** The live comparison page for a key; `searched` marks the offer the visitor searched for. */
+export function compareHref(key: string, searched?: string): string {
+  const p = new URLSearchParams({ key });
+  if (searched) p.set("searched", searched);
+  return `/compare?${p}`;
 }
