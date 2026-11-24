@@ -107,16 +107,30 @@ p { margin: 0; }
 .account-caret { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .account-toggle[aria-expanded="true"] .account-caret { transform: rotate(180deg); }
 .account-dropdown {
-  position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; min-width: 220px; padding: 6px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  box-shadow: 0 8px 24px rgb(16 24 20 / 12%);
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: min(264px, calc(100vw - 24px)); padding: 6px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 10px 30px rgb(16 24 20 / 14%); font-size: .95rem;
 }
-.account-email { margin: 0; padding: 8px 10px; border-bottom: 1px solid var(--border); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-head { margin: 0; padding: 8px 10px 10px; border-bottom: 1px solid var(--border); min-width: 0; }
+.account-head strong, .account-head span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-head span { margin-top: 2px; font-size: .82rem; color: var(--muted); }
 .account-item {
-  display: block; width: 100%; padding: 9px 10px; margin-top: 4px; border: 0; border-radius: 8px; text-align: left;
+  display: block; width: 100%; padding: 8px 10px; margin-top: 2px; border: 0; border-radius: 8px; text-align: left;
   font: inherit; color: var(--text); background: none; text-decoration: none; cursor: pointer;
 }
 .account-item:hover, .account-item:focus-visible { background: var(--accent-soft); outline: none; }
+.account-signout {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px; position: relative;
+  color: color-mix(in srgb, var(--danger) 82%, var(--surface)); font-weight: 600;
+  transition: background .2s var(--ease), color .2s var(--ease);
+}
+.account-signout::before { content: ""; position: absolute; left: 6px; right: 6px; top: -5px; border-top: 1px solid var(--border); }
+.account-signout:hover, .account-signout:focus-visible { background: var(--danger-soft); color: var(--danger); }
+.signout-icon { flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.signout-arrow { transition: transform .25s var(--ease); }
+.account-signout:hover .signout-arrow, .account-signout:focus-visible .signout-arrow { transform: translateX(2.5px); }
+.account-signout:active { transform: scale(.98); }
+@media (prefers-reduced-motion: reduce) { .account-signout, .signout-arrow { transition: none; } .account-signout:hover .signout-arrow { transform: none; } }
 @media (max-width: 480px) { .account-name { display: none; } .account-toggle { padding-right: 8px; } }
 
 .site-footer { border-top: 1px solid var(--border); padding: 20px 0; }
@@ -306,8 +320,6 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 .recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
 .recent-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
 .recent-list .chip { display: inline-block; max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
-.account-section { margin: 0; padding: 8px 10px 2px; border-top: 1px solid var(--border); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
-.account-recent { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Home look: soft mint and blue glow behind the search, family illustration, trust strip. */
 body:has(.search-shell) {
   background:

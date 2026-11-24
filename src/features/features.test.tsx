@@ -181,6 +181,8 @@ test("search: figures count up from zero on load, and from just below on hover",
     frames = [];
     act(() => run.forEach((f) => f(now)));
   };
+  // React can paint a card before its effect asks for the first frame; wait for that request.
+  const started = () => waitFor(() => expect(frames.length).toBeGreaterThan(0));
   vi.stubGlobal("matchMedia", () => ({ matches: false }));
   vi.stubGlobal("performance", { now: () => now });
   vi.stubGlobal("requestAnimationFrame", (f: FrameRequestCallback) => frames.push(f));
@@ -193,10 +195,12 @@ test("search: figures count up from zero on load, and from just below on hover",
   const card = (await screen.findByText("Medicines we know")).parentElement!;
   const value = () => Number(card.querySelector("dd")?.textContent?.replace(/,/g, ""));
   expect(value()).toBe(0);
+  await started();
   flush(3000);
   expect(value()).toBe(1000);
 
   await userEvent.hover(card);
+  await started();
   flush(0);
   expect(value()).toBe(970);
   flush(200);
@@ -557,7 +561,7 @@ test("recent: opening a comparison records it once; the newest one is not sent a
   expect(posts()).toHaveLength(0);
 });
 
-test("recent: chips under the home search and in the account menu; Clear removes them", async () => {
+test("recent: chips under the home search, not in the account menu; Clear removes them", async () => {
   const calls = mockApi({
     "GET /v1/me": {
       ...user,
@@ -574,12 +578,7 @@ test("recent: chips under the home search and in the account menu; Clear removes
 
   await userEvent.click(screen.getByRole("button", { name: /account menu/i }));
   const menu = screen.getByRole("menu");
-  expect(within(menu).getAllByRole("menuitem").map((m) => m.textContent)).toEqual([
-    "Saved",
-    "Dolo 650",
-    "Lipitor 10 Tablet",
-    "Sign out",
-  ]);
+  expect(within(menu).getAllByRole("menuitem").map((m) => m.textContent)).toEqual(["Saved", "Sign out"]);
   await userEvent.keyboard("{Escape}");
 
   await userEvent.click(screen.getByRole("button", { name: "Clear recent medicines" }));
