@@ -23,7 +23,6 @@ const CARDS: { label: string; value: (s: Stats) => number; show: (n: number) => 
   { label: "Medicines we know", value: (s) => s.medicines, show: (n) => count.format(n) },
   { label: "Jan Aushadhi medicines", value: (s) => s.jan_aushadhi, show: (n) => count.format(n) },
   { label: "Have a cheaper exact substitute", value: (s) => s.with_cheaper_substitute, show: (n) => count.format(n) },
-  { label: "Typical saving", value: (s) => Math.floor(s.median_saving_bps / 100), show: (n) => `${n}%` },
 ];
 
 /**
