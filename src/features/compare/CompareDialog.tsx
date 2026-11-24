@@ -2,13 +2,13 @@
 
 import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
-import type { BuyLink, Offer } from "@/api/client";
+import type { Offer } from "@/api/client";
+import type { CompareItem } from "./CompareContext";
 import { packLabel, percent, rupees, sourceLabel, unitPriceLabel } from "@/lib/format";
 import { vendorRows } from "./vendors";
 import { WhereToBuy } from "./WhereToBuy";
 
-type Other = { offer: Offer; links: BuyLink[] };
-type Props = { mine: Offer; others: Other[]; form?: string; onClose: () => void };
+type Props = { mine: Offer; others: CompareItem[]; form?: string; onClose: () => void };
 
 /** Rows of the comparison. `same` marks a value that matches your medicine. Add a row by adding an entry. */
 const ROWS: { label: string; value: (o: Offer, form?: string) => string | undefined; same?: boolean }[] = [
@@ -110,11 +110,12 @@ export function CompareDialog({ mine, others, form, onClose }: Props) {
           })}
         </ul>
         {others
-          .filter((o) => o.links.length > 0)
-          .map(({ offer, links }) => (
+          .map((o) => ({ ...o, rows: vendorRows(o.links, o.vendors) }))
+          .filter((o) => o.rows.length > 0)
+          .map(({ offer, rows }) => (
             <WhereToBuy
               key={offer.id}
-              rows={vendorRows(links)}
+              rows={rows}
               name={others.length > 1 ? offer.name : undefined}
               janAushadhi={offer.source === "jan_aushadhi"}
             />
