@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useAuth } from "./AuthProvider";
+import { signInEnabled } from "./signInFlag";
 
 export function AuthMenu() {
   const { user, loading, signOut } = useAuth();
+  if (!signInEnabled()) return null;
   if (loading) return <span className="muted small" aria-busy="true">…</span>;
   if (!user) {
     return (

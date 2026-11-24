@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { SIGN_IN_URL } from "@/services/account";
 import { useAuth } from "./AuthProvider";
+import { AccountsComingSoon, signInEnabled } from "./signInFlag";
 
 export function SignInPage() {
   const params = useSearchParams();
   const { user } = useAuth();
   const failed = params.get("error") !== null;
+  if (!signInEnabled()) return <AccountsComingSoon title="Sign in" />;
 
   return (
     <section className="narrow stack">

@@ -9,6 +9,8 @@ export default defineConfig({
     environment: "jsdom",
     environmentOptions: { jsdom: { url: "http://localhost:3000/" } },
     setupFiles: ["./vitest.setup.ts"],
+    // Tests cover the signed-in features; one test turns sign-in off.
+    env: { NEXT_PUBLIC_SIGN_IN: "on" },
     include: ["src/**/*.test.{ts,tsx}", "functions/**/*.test.ts"],
     coverage: {
       provider: "v8",
