@@ -515,3 +515,22 @@ test("a pre-built medicine page shows its comparison from data alone, with no AP
   expect(screen.getByRole("list", { name: "Substitutes, cheapest first" }).children).toHaveLength(2);
   await waitFor(() => expect(calls.map((r) => new URL(r.url).pathname)).toEqual(["/v1/me"]));
 });
+
+test("a live comparison links to its medicine page; one offer or the page itself does not", () => {
+  mockApi(signedOut);
+  const key = "tablet|standard|atorvastatin:10mg|unit";
+  const { unmount } = withAuth(<ComparisonView c={comparison({ key })} headingLevel="h2" />);
+  expect(screen.getByRole("link", { name: /medicine page/i }).getAttribute("href")).toBe("/medicine/atorvastatin-10mg-tablet");
+  unmount();
+
+  // Pages exist only for medicines with a substitute.
+  const alone = comparison({ key, total_offers: 1 });
+  alone.offers = alone.offers.slice(1);
+  const one = withAuth(<ComparisonView c={alone} headingLevel="h2" />);
+  expect(screen.queryByRole("link", { name: /medicine page/i })).toBeNull();
+  one.unmount();
+
+  // The pre-built page does not link to itself.
+  withAuth(<ComparisonView c={comparison({ key })} headingLevel="h2" live={false} />);
+  expect(screen.queryByRole("link", { name: /medicine page/i })).toBeNull();
+});
