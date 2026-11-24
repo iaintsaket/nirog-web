@@ -1,0 +1,118 @@
+{
+ "matches": [
+  {
+   "key": "capsule|standard|pantoprazole:40mg|unit",
+   "salts_label": "Pantoprazole 40mg",
+   "offers": 44,
+   "cheapest": {
+    "id": "brand:177257",
+    "source": "brand",
+    "name": "Samplebrand 109 Capsule",
+    "manufacturer": "Example Pharma 109",
+    "price_paise": 500,
+    "pack_count": 10,
+    "pack_unit": "unit",
+    "unit_price_millipaise": 50000,
+    "salts_label": "Pantoprazole 40mg"
+   },
+   "differences": [
+    "No Domperidone"
+   ]
+  },
+  {
+   "key": "capsule|standard|domperidone:10mg+pantoprazole:40mg|unit",
+   "salts_label": "Domperidone 10mg + Pantoprazole 40mg",
+   "offers": 66,
+   "cheapest": {
+    "id": "brand:176016",
+    "source": "brand",
+    "name": "Samplebrand 110 10mg/40mg Capsule",
+    "manufacturer": "Example Pharma 110",
+    "price_paise": 1611,
+    "pack_count": 10,
+    "pack_unit": "unit",
+    "unit_price_millipaise": 161100,
+    "salts_label": "Domperidone 10mg + Pantoprazole 40mg"
+   },
+   "differences": [
+    "Domperidone 10mg instead of 30mg"
+   ]
+  },
+  {
+   "key": "capsule|standard|domperidone:20mg+pantoprazole:40mg|unit",
+   "salts_label": "Domperidone 20mg + Pantoprazole 40mg",
+   "offers": 8,
+   "cheapest": {
+    "id": "brand:182044",
+    "source": "brand",
+    "name": "Samplebrand 111 Capsule",
+    "manufacturer": "Example Pharma 111",
+    "price_paise": 3606,
+    "pack_count": 10,
+    "pack_unit": "unit",
+    "unit_price_millipaise": 360600,
+    "salts_label": "Domperidone 20mg + Pantoprazole 40mg"
+   },
+   "differences": [
+    "Domperidone 20mg instead of 30mg"
+   ]
+  },
+  {
+   "key": "capsule|standard|domperidone:30mg|unit",
+   "salts_label": "Domperidone 30mg",
+   "offers": 4,
+   "cheapest": {
+    "id": "onemg:d5da056af441b172",
+    "source": "brand",
+    "name": "Samplebrand 112 30mg Capsule",
+    "manufacturer": "Example Pharma 112",
+    "price_paise": 3750,
+    "pack_count": 10,
+    "pack_unit": "unit",
+    "unit_price_millipaise": 375000,
+    "salts_label": "Domperidone 30mg"
+   },
+   "differences": [
+    "No Pantoprazole"
+   ]
+  },
+  {
+   "key": "capsule|standard|domperidone:40mg+pantoprazole:40mg|unit",
+   "salts_label": "Domperidone 40mg + Pantoprazole 40mg",
+   "offers": 1,
+   "cheapest": {
+    "id": "brand:231706",
+    "source": "brand",
+    "name": "Samplebrand 113 40mg/40mg Capsule",
+    "manufacturer": "Example Pharma 113",
+    "price_paise": 5803,
+    "pack_count": 10,
+    "pack_unit": "unit",
+    "unit_price_millipaise": 580300,
+    "salts_label": "Domperidone 40mg + Pantoprazole 40mg"
+   },
+   "differences": [
+    "Domperidone 40mg instead of 30mg"
+   ]
+  },
+  {
+   "key": "capsule|standard|domperidone:30mg+pantoprazole:20mg|unit",
+   "salts_label": "Domperidone 30mg + Pantoprazole 20mg",
+   "offers": 3,
+   "cheapest": {
+    "id": "brand:179186",
+    "source": "brand",
+    "name": "Samplebrand 114 30mg/20mg Capsule",
+    "manufacturer": "Example Pharma 114",
+    "price_paise": 6696,
+    "pack_count": 10,
+    "pack_unit": "unit",
+    "unit_price_millipaise": 669600,
+    "salts_label": "Domperidone 30mg + Pantoprazole 20mg"
+   },
+   "differences": [
+    "Pantoprazole 20mg instead of 40mg"
+   ]
+  }
+ ]
+}
