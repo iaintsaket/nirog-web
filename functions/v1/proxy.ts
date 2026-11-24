@@ -10,9 +10,24 @@ export interface Env {
   PROXY_SECRET: string;
 }
 
+/** The slice of Cloudflare's Cache API the proxy uses (caches.default in production). */
+export interface EdgeCache {
+  match(request: Request): Promise<Response | undefined>;
+  put(request: Request, response: Response): Promise<void>;
+}
+
+/**
+ * Only GETs without credentials are looked up, and only a 200 the API marks `public`
+ * (with no cookie set) is stored, for as long as its Cache-Control allows. Public catalog
+ * routes never read the session, so a shared copy is the same for every visitor.
+ */
+const cacheable = (req: Request) => req.method === "GET" && !req.headers.has("authorization");
+const storable = (res: Response) =>
+  res.status === 200 && !res.headers.has("set-cookie") && /(^|,)\s*public\b/i.test(res.headers.get("cache-control") ?? "");
+
 const STRIP = ["host", "x-nirog-proxy-key", "x-nirog-client-ip", "x-forwarded-for", "x-real-ip"];
 
-export async function proxy(request: Request, env: Env, clientIp: string): Promise<Response> {
+export async function proxy(request: Request, env: Env, clientIp: string, cache?: EdgeCache): Promise<Response> {
   if (!env.API_ORIGIN || !env.PROXY_SECRET) {
     return Response.json({ error: "unavailable", message: "Service not configured." }, { status: 503 });
   }
@@ -21,6 +36,11 @@ export async function proxy(request: Request, env: Env, clientIp: string): Promi
     return Response.json({ error: "not_found", message: "Not found." }, { status: 404 });
   }
   const target = new URL(url.pathname + url.search, env.API_ORIGIN);
+  const key = cache && cacheable(request) ? new Request(url.toString()) : undefined;
+  if (key) {
+    const hit = await cache!.match(key);
+    if (hit) return tagged(hit, "hit");
+  }
 
   const headers = new Headers(request.headers);
   for (const h of STRIP) headers.delete(h);
@@ -34,5 +54,15 @@ export async function proxy(request: Request, env: Env, clientIp: string): Promi
     body: hasBody ? await request.arrayBuffer() : undefined,
     redirect: "manual",
   });
-  return new Response(upstream.body, { status: upstream.status, headers: upstream.headers });
+  const response = new Response(upstream.body, { status: upstream.status, headers: upstream.headers });
+  if (!key) return response;
+  if (storable(response)) await cache!.put(key, response.clone());
+  return tagged(response, "miss");
+}
+
+/** Marks where a reply came from, so `curl -I` shows whether the cache is working. */
+function tagged(res: Response, how: "hit" | "miss"): Response {
+  const out = new Response(res.body, res);
+  out.headers.set("x-nirog-cache", how);
+  return out;
 }
