@@ -50,3 +50,6 @@ CLAUDE.md
 
 # medicine pages fetched at deploy (scripts/fetch-medicines.mjs)
 /data/
+
+# wrangler (local Pages dev state)
+/.wrangler/

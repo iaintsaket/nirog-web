@@ -4,31 +4,22 @@ export type StockStatus = "in_stock" | "out_of_stock" | "unknown";
 
 /** One row of the Where to buy section, whatever the API sent. */
 export type VendorRow = {
-  /** Stable id, e.g. "pharmeasy". */
   vendor: string;
-  /** Display name, e.g. "PharmEasy". */
   label: string;
   url: string;
   /** "store": a store finder (Jan Aushadhi), not an online shop. */
   kind: BuyLink["kind"];
   status: StockStatus;
   pricePaise?: number;
-  /** ISO time the vendor was last checked. */
   checkedAt?: string;
 };
 
-const NAMES: Record<string, string> = {
-  "1mg": "Tata 1mg",
-  pharmeasy: "PharmEasy",
-  netmeds: "Netmeds",
-  apollo: "Apollo Pharmacy",
-};
-
-const HOSTS: [RegExp, string][] = [
-  [/(^|\.)1mg\.com$/, "1mg"],
-  [/(^|\.)pharmeasy\.in$/, "pharmeasy"],
-  [/(^|\.)netmeds\.com$/, "netmeds"],
-  [/(^|\.)apollopharmacy\.in$/, "apollo"],
+/** Shops the site knows by name. Add one by adding an entry. */
+const VENDORS = [
+  { id: "1mg", label: "Tata 1mg", host: "1mg.com" },
+  { id: "pharmeasy", label: "PharmEasy", host: "pharmeasy.in" },
+  { id: "netmeds", label: "Netmeds", host: "netmeds.com" },
+  { id: "apollo", label: "Apollo Pharmacy", host: "apollopharmacy.in" },
 ];
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -41,7 +32,7 @@ function vendorOf(link: BuyLink): string {
   } catch {
     /* not a URL: fall back to the label */
   }
-  return HOSTS.find(([re]) => re.test(host))?.[1] ?? slug(link.label);
+  return VENDORS.find((v) => host === v.host || host.endsWith(`.${v.host}`))?.id ?? slug(link.label);
 }
 
 /**
@@ -51,7 +42,7 @@ function vendorOf(link: BuyLink): string {
 export function vendorRows(links: BuyLink[], vendors: VendorStatus[] = []): VendorRow[] {
   const checked: VendorRow[] = vendors.map((v) => ({
     vendor: v.vendor,
-    label: NAMES[v.vendor] ?? v.vendor,
+    label: VENDORS.find((k) => k.id === v.vendor)?.label ?? v.vendor,
     url: v.url,
     kind: "online",
     status: v.status,

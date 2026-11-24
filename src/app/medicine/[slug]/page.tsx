@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComparisonView } from "@/features/compare/CompareView";
-import { asOf, description, heading, letterLabel, letterOf, liveHref, medicineJsonLd, title } from "@/lib/medicines";
+import { asOf, compareHref, description, heading, letterLabel, letterOf, medicineJsonLd, title } from "@/lib/medicines";
 import { medicines } from "@/lib/medicines-data";
 import { jsonLd } from "@/lib/site";
 
@@ -53,7 +53,7 @@ export default async function Medicine({ params }: Params) {
       <ComparisonView c={c} headingLevel="h2" live={false} />
       {c.total_offers > c.offers.length && (
         <p className="small">
-          <a href={liveHref(c.key)}>See all {c.total_offers} with today&apos;s prices →</a>
+          <a href={compareHref(c.key)}>See all {c.total_offers} with today&apos;s prices →</a>
         </p>
       )}
       <section className="stack-sm">
