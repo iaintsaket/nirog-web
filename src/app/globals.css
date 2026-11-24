@@ -592,6 +592,10 @@ html.splashing .brand .pulse { visibility: hidden; }
 .about-head { margin-bottom: 20px; }
 .about-head h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); letter-spacing: -0.02em; }
 .about-head .lede { margin-top: 6px; font-size: 1.075rem; }
+.about-more { max-width: 62ch; margin-top: 32px; }
+.about-more h2 { font-size: 1.25rem; margin-bottom: 8px; }
+.about-more p { color: var(--muted); line-height: 1.6; }
+.about-more p + p { margin-top: 10px; }
 
 .about-track {
   --gap: 18px;

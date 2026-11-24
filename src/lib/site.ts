@@ -48,3 +48,17 @@ export function homeJsonLd(): object {
     ],
   };
 }
+
+/** Structured data for /about: an AboutPage about the Organization the home page describes. */
+export function aboutJsonLd(): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": absolute("/about#page"),
+    url: absolute("/about"),
+    name: "About Nirog",
+    inLanguage: "en-IN",
+    isPartOf: { "@id": absolute("/#website") },
+    about: { "@id": absolute("/#org") },
+  };
+}
