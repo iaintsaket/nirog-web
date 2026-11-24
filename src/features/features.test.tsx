@@ -357,7 +357,10 @@ test("compare: clicking an alternative opens a side-by-side comparison with your
     "Per unit": ["₹20.00 per tablet/capsule", "₹0.91 per tablet/capsule"],
   });
   expect(within(dialog).getByText(/You save/)).toHaveTextContent("You save ₹190.92 per pack (95%) with Atorvastatin Tablets IP 10mg.");
-  expect(within(dialog).getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer");
+  const where = within(dialog).getByRole("region", { name: "Where to buy" });
+  expect(where).toHaveTextContent("Sold only at Jan Aushadhi Kendras, not online.");
+  expect(within(where).getByRole("link", { name: /Jan Aushadhi Kendra/ })).toHaveAttribute("rel", "noopener noreferrer nofollow");
+  expect(within(where).queryByText(/Buy on/)).not.toBeInTheDocument();
 
   await userEvent.keyboard("{Escape}");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -511,4 +514,23 @@ test("a pre-built medicine page shows its comparison from data alone, with no AP
   expect(screen.getByRole("heading", { level: 2, name: "Lipitor 10 Tablet" })).toBeTruthy();
   expect(screen.getByRole("list", { name: "Substitutes, cheapest first" }).children).toHaveLength(2);
   await waitFor(() => expect(calls.map((r) => new URL(r.url).pathname)).toEqual(["/v1/me"]));
+});
+
+test("a live comparison links to its medicine page; one offer or the page itself does not", () => {
+  mockApi(signedOut);
+  const key = "tablet|standard|atorvastatin:10mg|unit";
+  const { unmount } = withAuth(<ComparisonView c={comparison({ key })} headingLevel="h2" />);
+  expect(screen.getByRole("link", { name: /medicine page/i }).getAttribute("href")).toBe("/medicine/atorvastatin-10mg-tablet");
+  unmount();
+
+  // Pages exist only for medicines with a substitute.
+  const alone = comparison({ key, total_offers: 1 });
+  alone.offers = alone.offers.slice(1);
+  const one = withAuth(<ComparisonView c={alone} headingLevel="h2" />);
+  expect(screen.queryByRole("link", { name: /medicine page/i })).toBeNull();
+  one.unmount();
+
+  // The pre-built page does not link to itself.
+  withAuth(<ComparisonView c={comparison({ key })} headingLevel="h2" live={false} />);
+  expect(screen.queryByRole("link", { name: /medicine page/i })).toBeNull();
 });

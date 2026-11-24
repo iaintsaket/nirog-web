@@ -48,8 +48,9 @@ export function comparison(over: Partial<Comparison> = {}): Comparison {
       {
         offer: offer({ id: "j1", source: "jan_aushadhi", name: "Atorvastatin Tablets IP 10mg", price_paise: 908, unit_price_millipaise: 90800 }),
         links: [{ kind: "store", label: "Find a Jan Aushadhi Kendra", url: "https://example.org/kendra" }],
+        vendors: [],
       },
-      { offer: offer(), links: [] },
+      { offer: offer(), links: [], vendors: [] },
     ],
     total_offers: 2,
     searched_index: 1,

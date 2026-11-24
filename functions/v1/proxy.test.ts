@@ -43,3 +43,44 @@ test("refuses when unconfigured or outside /v1", async () => {
   expect((await proxy(req, { API_ORIGIN: "", PROXY_SECRET: "" }, "")).status).toBe(503);
   expect((await proxy(new Request("https://nirog.pages.dev/other"), env, "")).status).toBe(404);
 });
+
+/** Stands in for Cloudflare's edge cache (caches.default), keyed by URL. */
+function edgeCache() {
+  const store = new Map<string, Response>();
+  return {
+    store,
+    match: async (req: Request) => store.get(req.url)?.clone(),
+    put: async (req: Request, res: Response) => void store.set(req.url, res),
+  };
+}
+
+test("public GET replies are served from the edge cache, so repeat visits skip the API", async () => {
+  const upstream = vi.fn(async () => new Response('{"offers":1}', { headers: { "cache-control": "public, max-age=300, s-maxage=3600" } }));
+  vi.stubGlobal("fetch", upstream);
+  const cache = edgeCache();
+  const get = () => proxy(new Request("https://nirog.pages.dev/v1/stats", { headers: { cookie: "s=1" } }), env, "1.2.3.4", cache);
+
+  const first = await get();
+  expect(first.headers.get("x-nirog-cache")).toBe("miss");
+  expect(await first.text()).toBe('{"offers":1}');
+  const second = await get();
+  expect(second.headers.get("x-nirog-cache")).toBe("hit");
+  expect(await second.text()).toBe('{"offers":1}');
+  expect(upstream).toHaveBeenCalledTimes(1);
+});
+
+test("private, failed, cookie-setting, signed or non-GET replies are never cached", async () => {
+  const cache = edgeCache();
+  const cases: [Request, Response][] = [
+    [new Request("https://nirog.pages.dev/v1/me"), new Response("{}", { headers: { "cache-control": "private, no-store" } })],
+    [new Request("https://nirog.pages.dev/v1/search?q=x"), new Response("{}", { status: 503, headers: { "cache-control": "public, max-age=300" } })],
+    [new Request("https://nirog.pages.dev/v1/compare?key=k"), new Response("{}", { headers: { "cache-control": "public, max-age=300", "set-cookie": "a=b" } })],
+    [new Request("https://nirog.pages.dev/v1/stats", { headers: { authorization: "Bearer t" } }), new Response("{}", { headers: { "cache-control": "public, max-age=300" } })],
+    [new Request("https://nirog.pages.dev/v1/saved", { method: "POST", body: "{}" }), new Response("{}", { headers: { "cache-control": "public, max-age=300" } })],
+  ];
+  for (const [req, res] of cases) {
+    vi.stubGlobal("fetch", vi.fn(async () => res));
+    await proxy(req, env, "1.2.3.4", cache);
+  }
+  expect(cache.store.size).toBe(0);
+});

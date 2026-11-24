@@ -224,7 +224,7 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 .ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
 .rung { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: 14px;
   background: var(--surface); transition: border-color .2s, box-shadow .25s var(--ease), transform .2s var(--ease); }
-/* Hover: the card zooms and glows softly; its border stays as it is (no green outline). */
+/* Hover: the card zooms and glows softly. */
 .ladder .rung:hover { border-color: var(--border); transform: scale(1.03); z-index: 2;
   box-shadow: 0 0 28px 4px color-mix(in srgb, var(--accent) 28%, transparent), 0 14px 30px -16px rgb(16 24 20 / 22%); }
 .ladder .rung-best:hover { border-color: var(--accent); }
@@ -249,7 +249,6 @@ body:has(.search-shell) .site-footer .container { max-width: 1240px; }
 .bar-good { background: var(--accent); }
 .bar-you { background: #b7791f; }
 @keyframes bar-grow { from { transform: scaleX(0); } }
-.rung-links { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 4px; }
 .link-chip { font-size: .72rem; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
   color: var(--text); text-decoration: none; background: var(--bg); }
 .link-chip:hover { border-color: var(--accent); color: var(--accent-strong); }
@@ -462,3 +461,77 @@ html.splashing .brand .pulse { visibility: hidden; }
 .notice-warn { background: var(--warn-soft); border-radius: 10px; padding: 10px 14px; }
 .badge-diff { background: var(--warn-soft); color: #7a4b00; border-color: #e0b25c; }
 .close-link { align-self: flex-start; margin-top: auto; }
+
+/* Where to buy: one full-width row per vendor; the Buy button drops below the details on phones. */
+.wtb { border-top: 1px solid var(--border); padding-top: 14px; display: grid; gap: 10px; }
+.wtb-head .h3 { margin: 0; }
+.wtb-for { color: var(--muted); font-weight: 500; }
+.wtb-note { margin: 4px 0 0; color: var(--ja); font-weight: 600; }
+.wtb-list { display: grid; gap: 8px; }
+.wtb-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.wtb-best { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.wtb-out_of_stock { background: var(--bg); }
+.wtb-out_of_stock .wtb-name, .wtb-out_of_stock .wtb-price { color: var(--muted); }
+.wtb-info { display: grid; gap: 4px; min-width: 0; flex: 1 1 220px; }
+.wtb-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 1rem; }
+.wtb-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.wtb-price { font-weight: 700; }
+.wtb-pill { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: .8rem;
+  padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); }
+.wtb-pill-in_stock { background: var(--accent-soft); color: var(--accent-strong); border-color: transparent; }
+.wtb-pill-out_of_stock { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.wtb-buy { flex: 0 0 240px; }
+.wtb-foot { margin: 0; }
+@media (max-width: 560px) { .wtb-buy { flex: 1 1 100%; white-space: normal; text-align: center; } }
+
+/* Sign-in: one centred card; each provider is a full-width button in its own brand style. */
+.auth-page {
+  position: relative; display: grid; gap: 32px; align-items: center; margin: 32px auto 48px; max-width: 960px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+}
+.auth-page::before {
+  content: ""; position: absolute; inset: -40px -24px; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(28% 45% at 30% 45%, var(--glow-a), transparent),
+    radial-gradient(26% 42% at 72% 55%, var(--glow-b), transparent);
+  opacity: 0.7;
+}
+.auth-pitch h2 { margin: 6px 0 8px; font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.15; letter-spacing: -0.02em; }
+.auth-kicker { margin: 0; color: var(--accent); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.perks { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 18px; }
+.perks li { display: flex; gap: 14px; align-items: flex-start; }
+.perks p { margin: 2px 0 0; }
+.perk-icon {
+  flex: none; padding: 8px; box-sizing: content-box; border-radius: 12px; background: var(--accent-soft);
+  fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.auth-card {
+  width: 100%; box-sizing: border-box; padding: 32px 28px; display: grid; gap: 20px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow);
+}
+.auth-head { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.auth-head h1 { margin: 4px 0 0; font-size: 1.5rem; letter-spacing: -0.01em; }
+.auth-head p { margin: 0; }
+.auth-wide { width: 100%; }
+.auth-foot { margin: 0; text-align: center; }
+.providers { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.provider {
+  display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;
+  min-height: 44px; padding: 10px 16px; border-radius: 999px; text-decoration: none;
+  font-family: inherit; font-weight: 500; font-size: 0.95rem; line-height: 1.2; transition: background-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.provider:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.provider-mark { flex: none; }
+/* Google's button colours: white with a grey outline, near-black on dark pages. */
+.provider-google { background: #fff; color: #1f1f1f; border: 1px solid #747775; }
+.provider-google:hover { background: #f8faff; box-shadow: 0 1px 3px rgb(60 64 67 / 30%); }
+@media (prefers-color-scheme: dark) {
+  .provider-google { background: #131314; color: #e3e3e3; border-color: #8e918f; }
+  .provider-google:hover { background: #1f1f20; }
+}
+@media (max-width: 760px) {
+  .auth-page { grid-template-columns: 1fr; margin-top: 16px; }
+  .auth-card { order: -1; }
+}
+@media (max-width: 480px) { .auth-card { padding: 24px 18px; border-radius: 14px; } }

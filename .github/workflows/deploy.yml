@@ -65,6 +65,8 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NEXT_PUBLIC_SIGN_IN: ${{ vars.NEXT_PUBLIC_SIGN_IN }}
+          # The API serves /v1/pages (the whole catalogue) only to this deploy.
+          PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
       - name: Record the release (it is live from here on)
         run: |
           notes="Live at https://nirog.pages.dev. Roll back from Actions → rollback, or: deploy/rollback-pages.sh <version>."
