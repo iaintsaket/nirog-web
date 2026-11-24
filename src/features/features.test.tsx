@@ -7,6 +7,7 @@ import { AuthMenu } from "./auth/AuthMenu";
 import { AuthProvider } from "./auth/AuthProvider";
 import { SignInPage } from "./auth/SignInPage";
 import { ComparePage } from "./compare/ComparePage";
+import { ComparisonView } from "./compare/CompareView";
 import { SavedPage } from "./saved/SavedPage";
 import { HomeLink } from "./search/HomeLink";
 import { SearchPage } from "./search/SearchPage";
@@ -501,4 +502,13 @@ test("sign-in: shows the Google button, a failure notice, or the signed-in user"
   nav.params = new URLSearchParams();
   withAuth(<SignInPage />);
   expect(await screen.findByText(user.email)).toBeInTheDocument();
+});
+
+test("a pre-built medicine page shows its comparison from data alone, with no API calls", async () => {
+  const calls = mockApi(signedOut);
+  // Nothing cheaper: the live page would look up close matches; a pre-built page must not.
+  withAuth(<ComparisonView c={comparison({ saving_per_pack_paise: 0, saving_bps: 0 })} headingLevel="h2" live={false} />);
+  expect(screen.getByRole("heading", { level: 2, name: "Lipitor 10 Tablet" })).toBeTruthy();
+  expect(screen.getByRole("list", { name: "Substitutes, cheapest first" }).children).toHaveLength(2);
+  await waitFor(() => expect(calls.map((r) => new URL(r.url).pathname)).toEqual(["/v1/me"]));
 });

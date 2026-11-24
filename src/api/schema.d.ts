@@ -120,6 +120,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every medicine with a substitute, in batches of 500, for building the website's medicine
+         *     pages. Called a few dozen times per website deploy, never by browsers.
+         */
+        get: operations["pages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/saved": {
         parameters: {
             query?: never;
@@ -250,6 +270,13 @@ export interface components {
         };
         /** @enum {string} */
         LinkKindDto: "store" | "online";
+        /** @description One medicine (exact-substitution key) as the website's pre-built page shows it. */
+        MedicinePageDto: {
+            /** @description The cheapest 20 offers; the saving is against the costliest of all of them. */
+            comparison: components["schemas"]["ComparisonResponse"];
+            /** @description Distinct names of every offer with this key, cheapest first (at most 100). */
+            names: string[];
+        };
         OfferDto: {
             id: string;
             manufacturer: string;
@@ -269,6 +296,12 @@ export interface components {
              * @description Price of one unit (tablet, ml or g) in thousandths of a paisa.
              */
             unit_price_millipaise: number;
+        };
+        PagesResponse: {
+            /** @description Pass as `after` to get the next batch; absent when this was the last. */
+            next?: string | null;
+            /** @description Medicines with at least one exact substitute, in match-key order. */
+            pages: components["schemas"]["MedicinePageDto"][];
         };
         SaveMatchRequest: {
             key: string;
@@ -552,6 +585,36 @@ export interface operations {
                 };
             };
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    pages: {
+        parameters: {
+            query?: {
+                /** @description The `next` value from the previous batch; omit for the first. */
+                after?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagesResponse"];
+                };
+            };
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -43,6 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <footer className="site-footer">
             <div className="container footer-row small muted">
               <span>Price comparison only, not medical advice.</span>
+              <Link href="/medicines/a">All medicines</Link>
               <Link href="/privacy">Privacy</Link>
               <a href="https://github.com/iaintsaket/nirog-web" rel="noopener noreferrer">
                 Source
