@@ -13,9 +13,12 @@ test("robots allows the site, keeps crawlers off the API, and points at the site
   });
 });
 
-test("sitemap lists only indexable pages, as absolute URLs", () => {
+test("sitemap lists home, the A–Z index and every medicine page, and nothing per-visitor", () => {
   const urls = sitemap().map((e) => e.url);
-  expect(urls).toEqual([absolute("/"), absolute("/privacy")]);
+  expect(urls).toContain(absolute("/"));
+  expect(urls).toContain(absolute("/medicines/p"));
+  expect(urls).toContain(absolute("/medicine/paracetamol-650mg-tablet"));
+  expect(urls.filter((u) => u.includes("/medicine/"))).toHaveLength(4);
   expect(urls.some((u) => /compare|saved|signin/.test(u))).toBe(false);
 });
 

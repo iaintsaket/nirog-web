@@ -10,7 +10,8 @@ export default defineConfig({
     environmentOptions: { jsdom: { url: "http://localhost:3000/" } },
     setupFiles: ["./vitest.setup.ts"],
     // Tests cover the signed-in features; one test turns sign-in off.
-    env: { NEXT_PUBLIC_SIGN_IN: "on" },
+    // Medicine pages read the small real sample, not a fetched data/medicines.json.
+    env: { NEXT_PUBLIC_SIGN_IN: "on", MEDICINES_FILE: "e2e/fixtures/medicines.json" },
     include: ["src/**/*.test.{ts,tsx}", "functions/**/*.test.ts"],
     coverage: {
       provider: "v8",

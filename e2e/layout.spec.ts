@@ -91,3 +91,17 @@ test.describe("search engines", () => {
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   });
 });
+
+test("medicine page: pre-built comparison with no API calls, reachable from the A–Z index", async ({ page }) => {
+  const api: string[] = [];
+  page.on("request", (r) => new URL(r.url()).pathname.startsWith("/v1/") && api.push(r.url()));
+  await page.goto("/medicines/p");
+  await page.getByRole("link", { name: "Paracetamol 650mg tablet", exact: true }).click();
+  await expect(page).toHaveURL(/\/medicine\/paracetamol-650mg-tablet$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Paracetamol 650mg tablet" })).toBeVisible();
+  await expect(page.locator(".ladder li").first()).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/medicine\/paracetamol-650mg-tablet$/);
+  await expectTidyPage(page);
+  await snap(page, "medicine");
+  expect(api.filter((u) => !u.endsWith("/v1/me"))).toEqual([]);
+});

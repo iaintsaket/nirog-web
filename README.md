@@ -46,6 +46,19 @@ The site is a static export (`npm run build` writes `out/`), so any static host 
 - **Cloudflare Pages (current):** merging to `main` deploys automatically once CI passes (`.github/workflows/deploy.yml`, which runs `deploy/cloudflare-pages.sh`). To deploy by hand, run the script. Set both settings once with `npx wrangler pages secret put <NAME> --project-name nirog`.
 - **Another host (for example AWS CloudFront with Lambda@Edge, or Vercel):** upload `out/`, then add a small adapter beside `[[path]].ts` that calls `proxy(request, env, clientIp)` with the platform's client IP. `proxy.ts` does not change.
 
+## Search engines and medicine pages
+
+Every medicine with at least one exact substitute (about 10,000) gets a static page at
+`/medicine/<slug>`, listed A–Z at `/medicines/<letter>` and in `sitemap.xml`. The pages are built at
+deploy from the API's `GET /v1/pages`, so visitors and crawlers never call the API for them.
+
+- `node scripts/fetch-medicines.mjs <api origin>` writes `data/medicines.json` (git-ignored). Every
+  deploy fetches it fresh (about 20 gzipped requests); it is deliberately not cached. Without it, builds use the small real sample in `e2e/fixtures/medicines.json`; the deploy refuses to.
+- `scripts/prune-export.mjs` runs after `next build`: it drops the per-medicine RSC files (links to
+  these pages are plain `<a>`) and fails the build above 19,000 files (Cloudflare Pages allows 20,000).
+- Set `NEXT_PUBLIC_SITE_URL` when the site moves to its own domain, and
+  `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` for Search Console.
+
 ## Releases and rollback
 
 Every deploy from `main` is a release with a [semantic version](https://semver.org) such as `v1.0.1`: a Git tag, a [GitHub Release](https://github.com/iaintsaket/nirog-web/releases) listing its PRs, and the same label on the Cloudflare deployment. A merge bumps the patch number (`v1.0.1` → `v1.0.2`). Label the PR `release: minor` for a new feature (`v1.1.0`) or `release: major` for a big change (`v2.0.0`). If the live checks fail after a deploy, the release title says so.

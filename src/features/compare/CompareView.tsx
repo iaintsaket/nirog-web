@@ -91,15 +91,11 @@ type Props = {
 /** Every exact substitute for one match key, cheapest first, with the saving and buy links. */
 export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard = false }: Props) {
   const [state, setState] = useState<State>({ kind: "loading" });
-  const [filter, setFilter] = useState<string | null>(null);
-  const [dearestFirst, setDearestFirst] = useState(false);
-  const { user } = useAuth();
 
   useEffect(() => {
     let live = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loading state for a new key
     setState({ kind: "loading" });
-    setFilter(null);
     compareMatch(matchKey, searched).then((r) => {
       if (!live) return;
       setState(r.ok ? { kind: "done", data: r.data } : { kind: "error", message: r.message });
@@ -118,7 +114,22 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
     );
   }
 
-  const c = state.data;
+  return <ComparisonView key={state.data.key} c={state.data} headingLevel={headingLevel} hideCard={hideCard} />;
+}
+
+type ViewProps = {
+  c: Comparison;
+  headingLevel?: "h1" | "h2";
+  hideCard?: boolean;
+  /** Fetch close matches when nothing is cheaper. Off on pre-built pages, which must not call the API. */
+  live?: boolean;
+};
+
+/** One comparison as cards and a price ladder, from data already in hand. */
+export function ComparisonView({ c, headingLevel = "h1", hideCard = false, live = true }: ViewProps) {
+  const [filter, setFilter] = useState<string | null>(null);
+  const [dearestFirst, setDearestFirst] = useState(false);
+  const { user } = useAuth();
   const cheapest = c.offers[0]?.offer;
   const base = c.searched_index != null ? c.offers[c.searched_index]?.offer : undefined;
   const available = QUICK_FILTERS.flatMap((f) => {
@@ -245,7 +256,7 @@ export function CompareView({ matchKey, searched, headingLevel = "h1", hideCard 
       {picked ? (
         <CompareProvider key={c.key} mine={picked} form={formLabel(c.key)}>
           {ladder}
-          {c.saving_per_pack_paise <= 0 && <CloseMatches matchKey={c.key} />}
+          {live && c.saving_per_pack_paise <= 0 && <CloseMatches matchKey={c.key} />}
         </CompareProvider>
       ) : (
         ladder
