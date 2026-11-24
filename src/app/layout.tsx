@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AboutMenu } from "@/features/about/AboutMenu";
 import { AuthMenu } from "@/features/auth/AuthMenu";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { HomeLink } from "@/features/search/HomeLink";
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <header className="site-header">
             <div className="container header-row">
-              <HomeLink />
+              <div className="header-left">
+                <HomeLink />
+                <AboutMenu />
+              </div>
               <nav aria-label="Account">
                 <AuthMenu />
               </nav>
@@ -44,6 +48,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div className="container footer-row small muted">
               <span>Price comparison only, not medical advice.</span>
               <Link href="/medicines/a">All medicines</Link>
+              <Link href="/about">About</Link>
               <Link href="/privacy">Privacy</Link>
               <a href="https://github.com/iaintsaket/nirog-web" rel="noopener noreferrer">
                 Source
