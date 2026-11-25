@@ -1,49 +1,36 @@
 import { expect, test } from "vitest";
-import { checkedLabel, recommend, sortRows, vendorRows, type VendorRow } from "./vendors";
+import { checkedLabel, recommend, sortRows, vendorLabel, vendorRows, type VendorRow } from "./vendors";
 
 const row = (over: Partial<VendorRow>): VendorRow => ({
   vendor: "x",
   label: "X",
-  url: "https://x.example/",
   kind: "online",
   status: "unknown",
   ...over,
 });
 
-test("today's buy links become rows whose stock is not checked yet, named by the shop", () => {
-  expect(
-    vendorRows([
-      { kind: "online", label: "Tata 1mg", url: "https://www.1mg.com/search/all?name=dolo" },
-      { kind: "online", label: "Apollo Pharmacy", url: "https://www.apollopharmacy.in/search-medicines/dolo" },
-      { kind: "store", label: "Find a Jan Aushadhi Kendra", url: "not a url" },
-    ]),
-  ).toEqual([
-    { vendor: "1mg", label: "Tata 1mg", url: "https://www.1mg.com/search/all?name=dolo", kind: "online", status: "unknown" },
-    { vendor: "apollo", label: "Apollo Pharmacy", url: "https://www.apollopharmacy.in/search-medicines/dolo", kind: "online", status: "unknown" },
-    { vendor: "find-a-jan-aushadhi-kendra", label: "Find a Jan Aushadhi Kendra", url: "not a url", kind: "store", status: "unknown" },
-  ]);
-});
-
-test("per-vendor stock from the API replaces that shop's link; other shops keep their links", () => {
+test("rows: checked pharmacies under generic names without links, then store finders; online links dropped", () => {
   const links = [
-    { kind: "online" as const, label: "Netmeds", url: "https://www.netmeds.com/catalogsearch/result/dolo/all" },
-    { kind: "online" as const, label: "Tata 1mg", url: "https://www.1mg.com/search/all?name=dolo" },
+    { kind: "online" as const, label: "Some Shop", url: "https://shop.example/search?q=dolo" },
+    { kind: "store" as const, label: "Find a Jan Aushadhi Kendra", url: "https://example.org/kendra" },
   ];
   expect(
     vendorRows(links, [
-      { vendor: "pharmeasy", status: "in_stock", price_paise: 3000, checked_at: "2026-11-25T00:00:00Z", url: "https://pharmeasy.in/p" },
-      { vendor: "netmeds", status: "out_of_stock", price_paise: null, checked_at: "2026-11-24T00:00:00Z", url: "https://www.netmeds.com/prescriptions/dolo-650" },
+      { vendor: "source_a", status: "in_stock", price_paise: 3000, checked_at: "2026-11-25T00:00:00Z" },
+      { vendor: "source_b", status: "out_of_stock", price_paise: null, checked_at: "2026-11-24T00:00:00Z" },
+      // The old API still sends its own ids and a url: named generically, url ignored.
+      { vendor: "old_shop", status: "unknown", checked_at: "2026-11-24T00:00:00Z", url: "https://shop.example/p" } as never,
     ]),
   ).toEqual([
-    { vendor: "pharmeasy", label: "PharmEasy", url: "https://pharmeasy.in/p", kind: "online", status: "in_stock", pricePaise: 3000, checkedAt: "2026-11-25T00:00:00Z" },
-    { vendor: "netmeds", label: "Netmeds", url: "https://www.netmeds.com/prescriptions/dolo-650", kind: "online", status: "out_of_stock", pricePaise: undefined, checkedAt: "2026-11-24T00:00:00Z" },
-    { vendor: "1mg", label: "Tata 1mg", url: "https://www.1mg.com/search/all?name=dolo", kind: "online", status: "unknown" },
+    { vendor: "source_a", label: "Pharmacy A", kind: "online", status: "in_stock", pricePaise: 3000, checkedAt: "2026-11-25T00:00:00Z" },
+    { vendor: "source_b", label: "Pharmacy B", kind: "online", status: "out_of_stock", pricePaise: undefined, checkedAt: "2026-11-24T00:00:00Z" },
+    { vendor: "old_shop", label: "Online pharmacy", kind: "online", status: "unknown", pricePaise: undefined, checkedAt: "2026-11-24T00:00:00Z" },
+    { vendor: "find-a-jan-aushadhi-kendra", label: "Find a Jan Aushadhi Kendra", url: "https://example.org/kendra", kind: "store", status: "unknown" },
   ]);
-  expect(vendorRows(links, [])[0].vendor).toBe("netmeds");
-  // A shop the site has no name for yet is shown by its id.
-  expect(
-    vendorRows([], [{ vendor: "newshop", status: "unknown", checked_at: "2026-11-24T00:00:00Z", url: "https://n.example/" }])[0].label,
-  ).toBe("newshop");
+  expect(vendorRows(links)).toHaveLength(1);
+  expect(["source_d", "source_", "source_ab", "SOURCE_A", ""].map(vendorLabel)).toEqual([
+    "Pharmacy D", "Online pharmacy", "Online pharmacy", "Online pharmacy", "Online pharmacy",
+  ]);
 });
 
 test("ranking: in stock first, cheapest within; out of stock last; best option only when something is in stock", () => {

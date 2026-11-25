@@ -6,7 +6,8 @@ export type StockStatus = "in_stock" | "out_of_stock" | "unknown";
 export type VendorRow = {
   vendor: string;
   label: string;
-  url: string;
+  /** Only Jan Aushadhi store finders link out; online pharmacies are never linked. */
+  url?: string;
   /** "store": a store finder (Jan Aushadhi), not an online shop. */
   kind: BuyLink["kind"];
   status: StockStatus;
@@ -14,46 +15,31 @@ export type VendorRow = {
   checkedAt?: string;
 };
 
-/** Shops the site knows by name. Add one by adding an entry. */
-const VENDORS = [
-  { id: "1mg", label: "Tata 1mg", host: "1mg.com" },
-  { id: "pharmeasy", label: "PharmEasy", host: "pharmeasy.in" },
-  { id: "netmeds", label: "Netmeds", host: "netmeds.com" },
-  { id: "apollo", label: "Apollo Pharmacy", host: "apollopharmacy.in" },
-];
+/** "source_a" → "Pharmacy A"; any other id → "Online pharmacy". */
+export function vendorLabel(id: string): string {
+  const m = /^source_([a-z])$/.exec(id);
+  return m ? `Pharmacy ${m[1].toUpperCase()}` : "Online pharmacy";
+}
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-/** The vendor id for a link: known shops by host, anything else by its label. */
-function vendorOf(link: BuyLink): string {
-  let host = "";
-  try {
-    host = new URL(link.url).hostname;
-  } catch {
-    /* not a URL: fall back to the label */
-  }
-  return VENDORS.find((v) => host === v.host || host.endsWith(`.${v.host}`))?.id ?? slug(link.label);
-}
-
 /**
- * Rows for one offer. A shop the scraper checked (`vendors`) shows its stock, price and product
- * page in place of its search link; every other shop keeps its link, stock not checked.
+ * Rows for one offer: each pharmacy the API checked, under a generic name with its stock and
+ * price but no link, then the store finders. Online links and any vendor `url` are ignored.
  */
 export function vendorRows(links: BuyLink[], vendors: VendorStatus[] = []): VendorRow[] {
   const checked: VendorRow[] = vendors.map((v) => ({
     vendor: v.vendor,
-    label: VENDORS.find((k) => k.id === v.vendor)?.label ?? v.vendor,
-    url: v.url,
+    label: vendorLabel(v.vendor),
     kind: "online",
     status: v.status,
     pricePaise: v.price_paise ?? undefined,
     checkedAt: v.checked_at,
   }));
-  const seen = new Set(checked.map((r) => r.vendor));
-  const rest: VendorRow[] = links
-    .map((l) => ({ vendor: vendorOf(l), label: l.label, url: l.url, kind: l.kind, status: "unknown" as const }))
-    .filter((r) => !seen.has(r.vendor));
-  return [...checked, ...rest];
+  const stores: VendorRow[] = links
+    .filter((l) => l.kind === "store")
+    .map((l) => ({ vendor: slug(l.label), label: l.label, url: l.url, kind: l.kind, status: "unknown" as const }));
+  return [...checked, ...stores];
 }
 
 const RANK: Record<StockStatus, number> = { in_stock: 0, unknown: 1, out_of_stock: 2 };

@@ -1,51 +1,47 @@
 import { render, screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
-import type { VendorRow } from "./vendors";
+import { vendorRows } from "./vendors";
 import { WhereToBuy } from "./WhereToBuy";
 
-const row = (over: Partial<VendorRow>): VendorRow => ({
-  vendor: over.label!.toLowerCase(),
-  label: "X",
-  url: `https://${over.label!.toLowerCase()}.example/`,
-  kind: "online",
-  status: "unknown",
-  ...over,
-});
+const now = new Date().toISOString();
 
-test("where to buy: one row per vendor, best option marked, out of stock last, status in words", () => {
-  render(
-    <WhereToBuy
-      name="Dolo 650"
-      rows={[
-        row({ label: "Netmeds", status: "out_of_stock", pricePaise: 2500, checkedAt: new Date().toISOString() }),
-        row({ label: "PharmEasy", status: "in_stock", pricePaise: 3000 }),
-        row({ label: "Apollo", status: "in_stock", pricePaise: 2800 }),
-        row({ label: "Tata 1mg" }),
-      ]}
-    />,
+test("where to buy: pharmacies under generic names, best option marked, out of stock last, no outside links", () => {
+  // Old API: an online search link and per-vendor urls; new API: source ids and no url. Neither may become a link.
+  const rows = vendorRows(
+    [{ kind: "online", label: "Some Shop", url: "https://shop.example/search?q=dolo" }],
+    [
+      { vendor: "source_c", status: "out_of_stock", price_paise: 2500, checked_at: now },
+      { vendor: "source_b", status: "in_stock", price_paise: 3000, checked_at: now },
+      { vendor: "source_a", status: "in_stock", price_paise: 2800, checked_at: now },
+      { vendor: "source_d", status: "unknown", checked_at: now },
+      { vendor: "old_shop", status: "in_stock", price_paise: 3500, checked_at: now, url: "https://shop.example/p" } as never,
+    ],
   );
+  render(<WhereToBuy name="Dolo 650" rows={rows} />);
   const section = screen.getByRole("region", { name: "Where to buy for Dolo 650" });
   const items = within(section).getAllByRole("listitem");
   expect(items.map((li) => li.textContent)).toEqual([
-    "Apollo★ Best option✓ In stock₹28.00Buy on Apollo ↗ (opens in a new tab)",
-    "PharmEasy✓ In stock₹30.00Buy on PharmEasy ↗ (opens in a new tab)",
-    "Tata 1mg? Not checked yetBuy on Tata 1mg ↗ (opens in a new tab)",
-    "Netmeds✕ Out of stock₹25.00checked just nowBuy on Netmeds ↗ (opens in a new tab)",
+    "Pharmacy A★ Best option✓ In stock₹28.00checked just now",
+    "Pharmacy B✓ In stock₹30.00checked just now",
+    "Online pharmacy✓ In stock₹35.00checked just now",
+    "Pharmacy D? Not checked yetchecked just now",
+    "Pharmacy C✕ Out of stock₹25.00checked just now",
   ]);
-  expect(items[3]).toHaveClass("wtb-out_of_stock");
-  const buy = within(items[0]).getByRole("link", { name: "Buy on Apollo (opens in a new tab)" });
-  expect(buy).toHaveAttribute("href", "https://apollo.example/");
-  expect(buy).toHaveAttribute("target", "_blank");
-  expect(buy).toHaveAttribute("rel", "noopener noreferrer nofollow");
+  expect(items[4]).toHaveClass("wtb-out_of_stock");
+  expect(within(section).queryByRole("link")).not.toBeInTheDocument();
+  expect(section).not.toHaveTextContent(/Some Shop|shop\.example|Buy on/);
   expect(section).toHaveTextContent("Nirog does not sell medicines.");
 });
 
 test("where to buy: Jan Aushadhi rows find a Kendra instead of buying online; nothing renders without rows", () => {
   const { container } = render(<WhereToBuy rows={[]} />);
   expect(container).toBeEmptyDOMElement();
-  render(<WhereToBuy janAushadhi rows={[row({ label: "Find a Jan Aushadhi Kendra", kind: "store" })]} />);
+  render(<WhereToBuy janAushadhi rows={vendorRows([{ kind: "store", label: "Find a Jan Aushadhi Kendra", url: "https://example.org/kendra" }])} />);
   const section = screen.getByRole("region", { name: "Where to buy" });
   expect(section).toHaveTextContent("Sold only at Jan Aushadhi Kendras, not online.");
-  expect(within(section).getByRole("link", { name: /^Find a Jan Aushadhi Kendra/ })).toBeInTheDocument();
+  const kendra = within(section).getByRole("link", { name: /^Find a Jan Aushadhi Kendra/ });
+  expect(kendra).toHaveAttribute("href", "https://example.org/kendra");
+  expect(kendra).toHaveAttribute("target", "_blank");
+  expect(kendra).toHaveAttribute("rel", "noopener noreferrer nofollow");
   expect(within(section).queryByText(/Buy on|Not checked yet/)).not.toBeInTheDocument();
 });
