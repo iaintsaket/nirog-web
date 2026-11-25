@@ -16,7 +16,7 @@ type Props = {
   janAushadhi?: boolean;
 };
 
-/** A clear "Where to buy" section: one full-width row per vendor, best option marked, out of stock last. */
+/** A clear "Where to buy" section: one row per pharmacy (generic name, stock, price), best option marked, out of stock last. */
 export function WhereToBuy({ rows, name, janAushadhi = false }: Props) {
   const titleId = useId();
   if (rows.length === 0) return null;
@@ -32,11 +32,11 @@ export function WhereToBuy({ rows, name, janAushadhi = false }: Props) {
       </div>
       <ul className="plain wtb-list">
         {sorted.map((r) => {
-          const online = r.kind === "online" && !janAushadhi;
+          const online = r.kind === "online";
           const isBest = r === best;
           const checked = r.checkedAt ? checkedLabel(r.checkedAt) : undefined;
           return (
-            <li key={`${r.vendor}|${r.url}`} className={`wtb-row wtb-${r.status}${isBest ? " wtb-best" : ""}`}>
+            <li key={`${r.kind}|${r.vendor}`} className={`wtb-row wtb-${r.status}${isBest ? " wtb-best" : ""}`}>
               <div className="wtb-info">
                 <div className="wtb-name">
                   <strong>{r.label}</strong>
@@ -54,15 +54,12 @@ export function WhereToBuy({ rows, name, janAushadhi = false }: Props) {
                   {checked && <span className="muted">{checked}</span>}
                 </div>
               </div>
-              <a
-                className={`button wtb-buy${r.status === "out_of_stock" ? "" : " button-primary"}`}
-                href={r.url}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-              >
-                {online ? `Buy on ${r.label}` : r.label} <span aria-hidden="true">↗</span>
-                <span className="visually-hidden"> (opens in a new tab)</span>
-              </a>
+              {r.kind === "store" && r.url && (
+                <a className="button wtb-buy button-primary" href={r.url} target="_blank" rel="noopener noreferrer nofollow">
+                  {r.label} <span aria-hidden="true">↗</span>
+                  <span className="visually-hidden"> (opens in a new tab)</span>
+                </a>
+              )}
             </li>
           );
         })}

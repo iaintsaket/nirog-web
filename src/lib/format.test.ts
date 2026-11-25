@@ -15,6 +15,6 @@ test("formats prices, packs, unit prices and savings for display", () => {
   expect(sourceLabel("brand")).toBe("Brand");
   expect(formLabel("tablet|standard|paracetamol:650mg|unit")).toBe("Tablet");
   expect(formLabel("liquid|standard|paracetamol:100mg/1ml|ml")).toBe("Syrup or liquid");
-  expect(formLabel("capsule|extended|x:1mg|unit")).toBe("Capsule, extended release");
+  expect(formLabel("capsule|extended|x:5mg|unit")).toBe("Capsule, extended release");
   expect(formLabel("k1")).toBeUndefined();
 });
