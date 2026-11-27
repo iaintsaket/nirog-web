@@ -86,6 +86,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/go/{offer_id}/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sends a buyer to an online pharmacy: the offer's product page there if one is stored, else
+         *     the pharmacy's search for the offer's name. Destinations come only from the database, so
+         *     nothing in the request can choose where it goes. Each redirect is counted per source and day.
+         */
+        get: operations["go"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -238,6 +259,7 @@ export interface components {
         BuyLinkDto: {
             kind: components["schemas"]["LinkKindDto"];
             label: string;
+            /** @description An `https` URL, or a path on this API (`/v1/go/...`) that redirects to an online pharmacy. */
             url: string;
         };
         CloseMatchDto: {
@@ -400,10 +422,17 @@ export interface components {
         /** @description One online pharmacy's listing of an offer. */
         VendorStatusDto: {
             /**
+             * @description Path on this API (`/v1/go/...`) that redirects to the pharmacy; absent when there is
+             *     nowhere to send a buyer.
+             */
+            buy_path?: string | null;
+            /**
              * Format: date-time
              * @description When the source was last checked.
              */
             checked_at: string;
+            /** @description The pharmacy's name. */
+            display_name: string;
             /**
              * Format: int64
              * @description The pharmacy's price per pack, in paise; absent when the listing is too old to trust.
@@ -546,6 +575,47 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ComparisonResponse"];
                 };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    go: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Offer id */
+                offer_id: string;
+                /** @description Source id: source_a, source_b, source_c or source_d */
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to the pharmacy */
+            302: {
+                headers: {
+                    /** @description The pharmacy's https page */
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             400: {
                 headers: {

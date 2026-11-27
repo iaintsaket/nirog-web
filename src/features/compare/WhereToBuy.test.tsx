@@ -10,10 +10,10 @@ test("where to buy: pharmacies under generic names, best option marked, out of s
   const rows = vendorRows(
     [{ kind: "online", label: "Some Shop", url: "https://shop.example/search?q=dolo" }],
     [
-      { vendor: "source_c", status: "out_of_stock", price_paise: 2500, checked_at: now },
-      { vendor: "source_b", status: "in_stock", price_paise: 3000, checked_at: now },
-      { vendor: "source_a", status: "in_stock", price_paise: 2800, checked_at: now },
-      { vendor: "source_d", status: "unknown", checked_at: now },
+      { vendor: "source_c", display_name: "Pharmacy c", status: "out_of_stock", price_paise: 2500, checked_at: now },
+      { vendor: "source_b", display_name: "Pharmacy b", status: "in_stock", price_paise: 3000, checked_at: now },
+      { vendor: "source_a", display_name: "Pharmacy a", status: "in_stock", price_paise: 2800, checked_at: now },
+      { vendor: "source_d", display_name: "Pharmacy d", status: "unknown", checked_at: now },
       { vendor: "old_shop", status: "in_stock", price_paise: 3500, checked_at: now, url: "https://shop.example/p" } as never,
     ],
   );
