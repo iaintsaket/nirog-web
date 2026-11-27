@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site";
 import { notFound } from "next/navigation";
 import { heading, letterLabel, letterOf } from "@/lib/medicines";
 import { letters, medicines } from "@/lib/medicines-data";
@@ -13,11 +14,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const l = letterLabel((await params).letter);
-  return {
-    title: `Medicines: ${l}`,
-    description: `Medicines starting with ${l} that have exact substitutes, from Jan Aushadhi and other brands.`,
-    alternates: { canonical: `/medicines/${(await params).letter}` },
-  };
+  return pageMeta({ path: `/medicines/${(await params).letter}`, title: `Medicines: ${l}`, description: `Medicines starting with ${l} that have exact substitutes, from Jan Aushadhi and other brands.` });
 }
 
 /** A–Z index: every medicine page is two clicks from the footer, for people and crawlers. */

@@ -5,13 +5,13 @@ import { AboutLink } from "@/features/about/AboutLink";
 import { AuthMenu } from "@/features/auth/AuthMenu";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { HomeLink } from "@/features/search/HomeLink";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, TITLE_SUFFIX } from "@/lib/site";
 import { Splash } from "@/ui/Splash";
 import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: SITE_TITLE, template: "%s · Nirog" },
+  title: { default: SITE_TITLE, template: `%s${TITLE_SUFFIX}` },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   openGraph: { type: "website", siteName: SITE_NAME, locale: "en_IN", title: SITE_TITLE, description: SITE_DESCRIPTION },

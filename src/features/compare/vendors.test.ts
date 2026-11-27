@@ -16,8 +16,8 @@ test("rows: checked pharmacies under generic names without links, then store fin
   ];
   expect(
     vendorRows(links, [
-      { vendor: "source_a", status: "in_stock", price_paise: 3000, checked_at: "2026-11-25T00:00:00Z" },
-      { vendor: "source_b", status: "out_of_stock", price_paise: null, checked_at: "2026-11-24T00:00:00Z" },
+      { vendor: "source_a", display_name: "Pharmacy a", status: "in_stock", price_paise: 3000, checked_at: "2026-11-25T00:00:00Z" },
+      { vendor: "source_b", display_name: "Pharmacy b", status: "out_of_stock", price_paise: null, checked_at: "2026-11-24T00:00:00Z" },
       // The old API still sends its own ids and a url: named generically, url ignored.
       { vendor: "old_shop", status: "unknown", checked_at: "2026-11-24T00:00:00Z", url: "https://shop.example/p" } as never,
     ]),

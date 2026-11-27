@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import sitemap from "@/app/sitemap";
@@ -33,7 +33,8 @@ test("about: five cards in order, the first is the mission, and nothing promises
   reduceMotion(false);
   render(<About />);
   expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/about/i);
-  const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+  const carousel = screen.getByRole("region", { name: "About Nirog" });
+  const titles = within(carousel).getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
   expect(titles).toEqual([
     "Health for everyone, everywhere",
     "The same medicine at a fair price",

@@ -30,6 +30,8 @@ jobs:
       - name: Tests with 80% coverage gate
         run: npm run test:coverage
       - run: npm run build
+      - name: SEO check on every built page (title, description, canonical, share tags, h1, JSON-LD, sitemap)
+        run: npm run seo
       - name: Dependency audit
         run: npm audit --audit-level=high
 

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ComparisonView } from "@/features/compare/CompareView";
 import { asOf, compareHref, description, heading, letterLabel, letterOf, medicineJsonLd, title } from "@/lib/medicines";
 import { medicines } from "@/lib/medicines-data";
-import { jsonLd } from "@/lib/site";
+import { jsonLd, pageMeta } from "@/lib/site";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -20,14 +20,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!entry) return {};
   const t = title(entry.page);
   const d = description(entry.page, medicines().updatedOn);
-  const url = `/medicine/${entry.slug}`;
-  return {
-    title: t,
-    description: d,
-    alternates: { canonical: url },
-    openGraph: { title: t, description: d, url },
-    twitter: { title: t, description: d },
-  };
+  return pageMeta({ path: `/medicine/${entry.slug}`, title: t, description: d });
 }
 
 export default async function Medicine({ params }: Params) {
