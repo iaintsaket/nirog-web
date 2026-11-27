@@ -11,7 +11,7 @@ type Props = {
   offer: Offer;
   /** Where to buy it: shown in the comparison window, not on the card, to keep cards short. */
   links?: BuyLink[];
-  /** Stock at online pharmacies, shown with the links. */
+  /** Stock and price at online pharmacies, shown under generic names. */
   vendors?: VendorStatus[];
   /** Place in the entrance line-up. */
   order: number;

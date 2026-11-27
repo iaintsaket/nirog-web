@@ -401,7 +401,7 @@ export interface components {
         VendorStatusDto: {
             /**
              * Format: date-time
-             * @description When the scraper last read the product page.
+             * @description When the source was last checked.
              */
             checked_at: string;
             /**
@@ -410,9 +410,7 @@ export interface components {
              */
             price_paise?: number | null;
             status: components["schemas"]["StockStatusDto"];
-            /** @description The product page. */
-            url: string;
-            /** @description Stable id, e.g. "pharmeasy". */
+            /** @description Stable source id, e.g. "source_a". */
             vendor: string;
         };
     };

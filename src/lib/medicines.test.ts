@@ -24,9 +24,9 @@ test("slugs are readable, say the release and pack unit, and stay short", () => 
 
 test("keys that would share a slug each get a stable suffix; others keep the plain one", () => {
   const page = (key: string) => ({ ...paracetamol, comparison: { ...paracetamol.comparison, key } });
-  const slugs = withSlugs([page("a|standard|x:1mg|unit"), page("a|standard|x 1mg|unit"), page("tablet|standard|y:2mg|unit")]).map((e) => e.slug);
-  expect(slugs[0]).toMatch(/^x-1mg-a-[0-9a-f]{6}$/);
-  expect(slugs[1]).toMatch(/^x-1mg-a-[0-9a-f]{6}$/);
+  const slugs = withSlugs([page("a|standard|x:5mg|unit"), page("a|standard|x 5mg|unit"), page("tablet|standard|y:2mg|unit")]).map((e) => e.slug);
+  expect(slugs[0]).toMatch(/^x-5mg-a-[0-9a-f]{6}$/);
+  expect(slugs[1]).toMatch(/^x-5mg-a-[0-9a-f]{6}$/);
   expect(slugs[0]).not.toBe(slugs[1]);
   expect(slugs[2]).toBe("y-2mg-tablet");
   expect(withSlugs(sample.pages).map((e) => e.slug)).toEqual(withSlugs(sample.pages).map((e) => e.slug));
